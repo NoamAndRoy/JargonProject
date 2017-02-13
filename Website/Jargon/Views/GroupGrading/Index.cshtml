@@ -1,0 +1,39 @@
+﻿@model JargonProject.Models.GroupGradingInfo
+
+@{
+    ViewBag.Title = "Group Grading";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@Styles.Render("~/Content/GroupGrading.css")
+
+<section id="textGradingSection">
+    <h1 id="textGradingSectionTitle" class="sectionTitle">Group Grading</h1>
+    @using (Html.BeginForm("Index", "GroupGrading", FormMethod.Post, new { id = "groupGradingForm", enctype = "multipart/form-data" }))
+    {
+        <fieldset>
+            <legend>Article</legend>
+            <input type="file" id="ArticlesGroupFU" name="ArticlesGroupFU" multiple="multiple"/>
+        </fieldset>
+        <fieldset>
+            <button type="submit" id="gradeArticlesGroupBtn" class="btn btn-primary btn-block btn-lg">Start</button>
+        </fieldset>
+    }
+
+    @{ 
+        if (Model.GroupGradingStatus == JargonProject.Models.eGroupGradingStatus.ErrorOccurred)
+        {
+            <div id="resultDiv">
+                <fieldset>
+                    <div id="resultsContent" name="resultsContent" class="input-group-sm">
+                        An Error Occurred, please check if all your files formats are included in our supported formats.
+                    </div>
+                </fieldset>
+            </div>
+        }else if (Model.GroupGradingStatus == JargonProject.Models.eGroupGradingStatus.FileGenerated)
+        {
+            string url = Url.Action("DownloadArticlesFile");
+            Response.Redirect(url);
+        }
+    }
+</section>

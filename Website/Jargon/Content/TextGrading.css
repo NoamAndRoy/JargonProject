@@ -1,0 +1,125 @@
+﻿#AudienceSelect,  #ArticleNameTB{
+    padding: 10px;
+}
+
+#textGradingForm > fieldset {
+    margin-top: 30px;
+}
+
+#textGradingForm > fieldset > select, #textGradingForm > fieldset > input[type="file"], #textGradingForm > fieldset > input[type="text"]  {
+    width: 60%;
+    max-width: 100%;
+}
+
+#gradeTextBtn {
+    width: 120px;
+    max-width: 100%;
+    float: right;
+}
+
+#resultDiv {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+#resultsContent {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    padding: 10px;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+.rareWord {
+    color: red;
+    font-weight: bold;
+}
+
+.normalWord {
+    color: darkorange;
+    font-weight: bold;
+}
+
+.commonWord {
+    color: black;
+    font-weight: normal;
+}
+
+#textManual {
+    margin-top: 15px;
+    display: block;
+}
+
+#ContentTA {
+    width: 100%;
+    max-width: 100%;
+    min-width: 100%;
+    height: 150px;
+    padding: 10px;
+}
+
+#statDiv {
+    background-color: white;
+    border: 1px solid gray;
+    padding: 10px;
+    border-radius: 5px;
+    float: right;
+    display: -moz-deck;
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+@media(min-width: 900px) {
+    #statDiv {
+        width: 22%;
+    }
+}
+
+@media(min-width: 760px) and (max-width: 900px) {
+    #statDiv {
+        width: 30%;
+    }
+}
+
+
+@media(min-width: 520px) and (max-width: 760px) {
+    #statDiv {
+        width: 40%;
+    }
+}
+
+@media(min-width: 430px) and (max-width: 520px)  {
+    #statDiv {
+        width: 50%;
+    }
+}
+
+@media(min-width: 250px) and (max-width: 430px)  {
+    #statDiv {
+        width: 75%;
+    }
+}
+
+@media(min-width: 0px) and (max-width: 250px)  {
+    #statDiv {
+        width: 100%;
+    }
+}
+
+
+
+#statDiv > div > span {
+    padding: 10px;
+    display: inline-block;
+}
+
+.stat {
+    float: right;
+    width: 50%;
+}
+
+.resultSpan {
+    width: 50%;
+}

@@ -9,12 +9,19 @@ Over 90 million words were counted using a crawler that counted all words in all
 Overall, ~500,000 word types were ordered by number of appearances. These word types refer to each word: for example, value and values are each unique word types, even though they belong to the same word family.
 
 * The Crawler saves lists of articles published from the BBC sites (including science related channels) during the years 2012-2015.
-* The GeneralSpider crawl over the urls that were saved by the Crawler and created a dictionary of every word found, and the number of appearances in the corpus. 
+* The GeneralSpider crawl over the urls that were saved by the Crawler and created a dictionary of every word found, and the number of appearances in the corpus.
+
+To use the spiders, create a new one using Scrapy, and replace the files with the corresponding files from the repository.
 
 
 
 ##Website
 The website contains the full ASP.NET website implementation of the De-Jargonizer.
+
+To use the websie:
+
+1. Open the project with visual studio.
+2. Compile and run it.
 
 ##Technologies
 

@@ -1,0 +1,130 @@
+﻿@using JargonProject.Handlers
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>De-Jargonizer</title>
+    @*Renders and minifes site css*@
+    <link rel="stylesheet"
+    href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+    integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+    crossorigin="anonymous">
+        <link href='@(Url.Content("Content/Site.css") + "?v=" + Guid.NewGuid().ToString())' rel='stylesheet' type='text/css' />
+        <link href='@(Url.Content("Content/Home.css") + "?v=" + Guid.NewGuid().ToString())' rel='stylesheet' type='text/css' />
+    <script src="../Scripts/modernizr-2.6.2.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var url = window.location.href;
+            var indexOfSlash = url.indexOf("/");
+            var subURLIndex = url.substr(indexOfSlash).indexOf("?");
+
+            if (subURLIndex != -1)
+            {
+                var subURL = url.substr(subURLIndex + indexOfSlash + 1);
+                var isFirstSection = $(".infoSection").index($("#" + subURL)) == 0;
+                $(document).scrollTop($("#" + subURL).position().top - (isFirstSection ? 70 : 0));
+            }
+
+            var isiDevice = /ipad|iphone|ipod/i.test(navigator.userAgent.toLowerCase());
+
+            if (isiDevice) {
+                $(".dropDownElement").click(function () {
+                    $(this).children(".dropdownItems").toggle();
+                });
+            }
+        });
+
+    </script>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-103589501-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-103589501-1');
+    </script>
+
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li>@Html.ActionLink("De-Jargonizer", "Index", "TextGrading", new { area = "" }, new { @class = "navbar-brand" })</li>
+                    <li>@Html.ActionLink("Multiple Texts", "Index", "GroupGrading", new { area = "" }, new { @class = "navbar-brand" })</li>
+                    <li>@Html.ActionLink("Hebrew", "Index", "Hebrew", new { area = "" }, new { @class = "navbar-brand" })</li>
+                    <li class="dropDownElement">
+                        <a class="dropDownBtn">About</a>
+                        <div class="dropdownItems">
+                            <a href="../Home/About?whatIsIt">What is it?</a>
+                            <a href="../Home/About?whyDoWeNeedIt">Why do we need it?</a>
+                            <a href="../Home/About?whoShouldUseIt">Who should use it?</a>
+                            <a href="../Home/About?inTheNews">In the news</a>
+                            <a href="../Home/About?buildYourOwnDeJargonizer">Build your own De-Jargonizer</a>
+                        </div>
+                    </li>
+                    <li class="dropDownElement">
+                        <a class="dropDownBtn">Instructions</a>
+                        <div class="dropdownItems">
+                            <a href="../Home/Instructions?howToUseIt">How to use it?</a>
+                            <a href="../Home/Instructions?fileTypes">File types</a>
+                            <a href="../Home/Instructions?judgingResults">Judging results</a>
+                            <a href="../Home/Instructions?howToReadResults">How to read results?</a>
+                        </div>
+                    </li>
+                    <li class="dropDownElement">
+                        <a class="dropDownBtn">Development</a>
+                        <div class="dropdownItems">
+                            <a href="../Home/Development?wordFrequencyLevels">Word frequency levels</a>
+                            <a href="../Home/Development?development">Development</a>
+                            <a href="../Home/Development?Developers">Developers</a>
+                        </div>
+                    </li>
+                    <li class="dropDownElement">
+                        <a class="dropDownBtn">How to cite</a>
+                        <div class="dropdownItems">
+                            <a href="../Home/HowToCite?howToCite">How to cite?</a>
+                        </div>
+                    </li>
+                    <li class="dropDownElement">
+                        <a class="dropDownBtn">Contact Us</a>
+                        <div class="dropdownItems">
+                            <a href="../Home/ContactUs?contact">Contact</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+<div class="container body-content">
+    @*all the views are rendered inside this div*@
+    @RenderBody()
+    <hr/>
+    @*layout footer*@
+    <footer>
+        <p>&copy; @DateTime.Now.Year - Jargon Project</p>
+        <p>visits: @Logger.ReadAmountOfUses()</p>
+    </footer>
+</div>
+    @*renders and minifies scripts with the mvc bundles*@
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+    integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

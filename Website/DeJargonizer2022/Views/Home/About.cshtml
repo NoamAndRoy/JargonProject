@@ -1,0 +1,199 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href='@(Url.Content("../Content/Site.css") + "?v=" + Guid.NewGuid().ToString())' rel='stylesheet' type='text/css' />
+<link href='@(Url.Content("../Content/Home.css") + "?v=" + Guid.NewGuid().ToString())' rel='stylesheet' type='text/css' />
+
+<section id="aboutSection">
+    <h1 class="sectionTitle">About</h1>
+    <section class="infoSection" id="whatIsIt">
+        <h3>What is the De-Jargonizer?</h3>
+        <p>
+            The De-Jargonizer is an automated jargon identification program aimed at helping scientists and science communication trainers improve and adapt vocabulary use for a variety of audiences. The program determines the level of vocabulary and terms in a text, and divides the words into three levels: high frequency/common words; mid-frequency/normal words; and jargon – rare and technical words.
+        </p>
+    </section>
+    <section class="infoSection" id="whyDoWeNeedIt">
+        <h3>Why do we need a De-Jargonizer?</h3>
+        <p>
+            Scientists are required to communicate science and research not only to other specialists in the field, but also to scientists and specialists from other fields, as well as to the public and policymakers. One fundamental suggestion when communicating with non-specialists is to avoid professional jargon that is excluding and prevents reader-listener comprehension. However, because scientists are trained to speak with highly specialized language, avoiding jargon is difficult for scientists. Also, there is no standard to aid scientists in adjusting their messages. The De-Jargonizer highlights problematic jargon, allowing those communicating science to consider changing these potentially problematic words with more familiar words (or adding explanations).
+        </p>
+    </section>
+    <section class="infoSection" id="whoShouldUseIt">
+        <h3>Who can benefit from using the De-Jargonizer?</h3>
+        <p>
+            Scientists, science communicators, and science communication trainers can all benefit from the
+            de-jargonizer. Scientists and science communicators can use it to adapt their message for non-specialists. Science communication trainers can use it to assess the progress of their students by evaluating their use of appropriate vocabulary.
+        </p>
+    </section>
+    <section class="infoSection" id="inTheNews">
+        <h3>In the news</h3>
+        <div>
+            <h4>English</h4>
+            <ul>
+                <li>
+                    <a href="https://writingcooperative.com/the-curse-of-knowledge-dont-overestimate-your-audience-while-writing-science-c0463b1a4a55">The curse of knowledge: don’t overestimate your audience while writing science</a>, 15.12.2018, Digital Trends<br>
+                </li>
+                <li>
+                    <a href="https://www.digitaltrends.com/cool-tech/de-jargonizer-science-jargon/">New tool helps scientists cut the jargon, communicate more clearly</a>, 14.8.2017, Digital Trends<br>
+                </li>
+                <li>
+                    <a href="https://phys.org/news/2017-08-de-jargonizing-decode-science.html">De-jargonizing program helps decode science speak</a>, 11.8.2017, PysOrg
+                </li>
+                <li>
+                    <a href="https://www.sciencedaily.com/releases/2017/08/170810125033.htm">De-jargonizing program helps decode science speak</a>, 10.8.2017, ScienceDaily
+                </li>
+                <li>
+                    <a href="http://www.ats.org/news/de-jargonizing-program-helps-decode-science-speak/">De-jargonizing program helps decode science speak</a>, 10.8.2017, American Technion Society
+                </li>
+                <li>
+                    <a href="http://agnewsfeed.com/2017/08/10/de-jargonizing-program-helps-decode-science-speak/">De-jargonizing program helps decode science speak</a>, AG News Feed
+                </li>
+                <li>
+                    <a href="http://www.feedstuffs.com/news/de-jargonizing-program-helps-decode-science-speak">De-jargonizing program helps decode science speak</a>, 10.8.2017, Feedstuffs
+                </li>
+                <li>
+                    <a href="http://insights.globalspec.com/article/6173/a-program-to-simplify-scientific-communication">A Program to Simplify Scientific Communication</a>, 11.8.2017, Engineering360
+                </li>
+                <li>
+                    <a href="https://www.fromthegrapevine.com/innovation/cant-understand-science-studies-might-be-about-change">Can't understand science studies? That might be about to change</a>, 17.8.2017, From The Grapevine
+                </li>
+                <li>
+                    <a href="http://www.logicalidea.xyz/de-jargonizer/">DE-JARGONIZER – A New Tool Makes Scientific Writing Easier for the Public to Grasp</a>, 14.8.2017, Logical Idea
+                </li>
+                <li>
+                    <a href="https://futurism.com/a-new-tool-makes-scientific-writing-easier-for-the-public-to-grasp/">A New Tool Makes Scientific Writing Easier for the Public to Grasp</a>, 14.8.2017, Futurism
+                </li>
+                <li>
+                    <a href="https://singularityhub.com/2017/08/14/this-online-tool-strips-the-jargon-out-of-science-writing/">This Free Online Tool Helps Strip the Jargon Out of Science Writing</a>, 14.8.2017, Singularity Hub
+                </li>
+                <li>
+                    <a href="http://nuadox.com/post/164320893697/automatic-jargon-identifier-for-scientists">Automatic jargon identifier for scientists engaging with the public</a>, 18.8.2017, NUADOX
+                </li>
+                <li>
+                    <a href="http://www.timesofisrael.com/technions-de-jargonizer-translates-science-speak-for-the-layman/">Technion’s De-Jargonizer translates science-speak for the layman</a>, 21.8.2017, The Times of Israel
+                </li>
+                <li>
+                    <a href="http://hamodia.com/2017/08/21/technion-software-helps-scientists-speak-normal-english//">Technion Software Helps Scientists Speak Normal English</a>, 21.8.2017, HAMODIA
+                </li>
+                <li>
+                    <a href="https://www.acsh.org/news/2017/08/22/tired-sciences-mumbo-jumbo-use-de-jargonizer-11728">Tired Of Science's Mumbo-Jumbo? Use The De-Jargonizer!</a>, 22.8.2017, American Council on Science and Health
+                </li>
+                <li>
+                    <a href="https://today.mims.com/topic/when-it-comes-to-reports-and-papers-go-easy-on-those-jargons-scientists">When it comes to reports and papers – go easy on those jargons, scientists</a>, 23.8.2017, MIMS
+                </li>
+                <li>
+                    <a href="http://joyfulpublicspeaking.blogspot.co.il/2017/09/the-de-jargonizer-tool-for.html">The De-jargonizer – a tool for communicating science clearly</a>, 12.9.2017, Joyful Public Speaking
+                </li>
+            </ul>
+        </div>
+        <br />
+        <div>
+            <h4>Русский</h4>
+            <ul>
+                <li>
+                    <a href="http://www.nanonewsnet.ru/news/2017/dezhargonizator-sdelaet-nauchnyi-tekst-ponyatnee-dlya-shirokoi-auditorii">«Дежаргонизатор» сделает научный текст понятнее для широкой аудитории</a>, 14.8.2017, Nano News Net<br>
+                </li>
+                <li>
+                    <a href="https://nplus1.ru/news/2017/08/14/de-jargonizer">«Дежаргонизатор» сделает научный текст понятнее для широкой аудитории</a>, 14.8.2017, N + 1<br>
+                </li>
+                <li>
+                    <a href="https://www.gazeta.ru/science/2017/08/11_a_10828544.shtml">Как переводить с научного на человеческий</a>, 11.8.2017, Газета.Ru<br>
+                </li>
+                <li>
+                    <a href="https://sciencepop.ru/uchenye-izmerili-neponyatnost-nauchnogo-teksta/">Ученые измерили непонятность научного текста</a>, 15.8.2017, Science Pop<br>
+                </li>
+                <li>
+                    <a href="http://news.ifmo.ru/ru/education/trend/news/6883/">С научного языка на человеческий: поможет ли «Дежаргонизатор» сделать науку понятнее широкой аудитории</a>, 21.8.2017, IMTO.NEWS<br>
+                </li>
+            </ul>
+        </div>
+        <br />
+        <div>
+            <h4>Deutsch</h4>
+            <ul>
+                <li>
+                    <a href="https://www.pressetext.com/news/20170816003">"De-Jargonizer": Forschertexte endlich verständlich</a>, 16.8.2017, Pressetext<br>
+                </li>
+                <li>
+                    <a href="https://www.wallstreet-online.de/nachricht/9827157-de-jargonizer-forschertexte-endlich-verstaendlich">"De-Jargonizer" Forschertexte endlich verständlich</a>, 16.8.2017, Wallstreet:Online<br>
+                </li>
+                <li>
+                    <a href="https://www.prikk.world/de/news/wirtschaft/innovation/de-jargonizer-aus-israel-wissenschaft-soll-fur-jedermann-verstandlich">"De-Jargonizer" aus Israel: Wissenschaft soll für Jedermann verständlich werden</a>, 16.8.2017, Prikk.World<br>
+                </li>
+                <li>
+                    <a href="http://www.computerwelt.at/news/detail/artikel/121815-de-jargonizer-app-macht-forschertexte-endlich-verstaendlich/">"De-Jargonizer"-App macht Forschertexte verständlich</a>, 16.8.2017, Computerwelt<br>
+                </li>
+            </ul>
+        </div>
+        <br />
+        <div>
+            <h4>中文</h4>
+            <ul>
+                <li>
+                    <a href="http://cn.timesofisrael.com/%E8%AF%BB%E4%B8%8D%E6%87%82%E7%A7%91%E5%AD%A6%E7%B1%BB%E6%96%87%E7%AB%A0%EF%BC%9F%E4%BB%A5%E8%89%B2%E5%88%97%E7%BF%BB%E8%AF%91%E5%99%A8%E6%9D%A5%E5%B8%AE%E5%BF%99/">读不懂科学类文章？以色列翻译器来帮忙</a>, 23.8.2017, The Times of Israel<br>
+                </li>
+            </ul>
+        </div>
+        <br />
+        <div>
+            <h4>Español</h4>
+            <ul>
+                <li>
+                    <a href="http://aurora-israel.co.il/de-jargonizer-traduce-el-lenguaje-cientifico-a-legos/">De-Jargonizer traduce el lenguaje científico a legos</a>, 30.8.2017, Aurora<br>
+                </li>
+            </ul>
+        </div>
+        <br />
+        <div>
+            <h4>Français</h4>
+            <ul>
+                <li>
+                    <a href="http://www.francetvinfo.fr/replay-radio/t-as-vu-l-info/t-as-vu-l-info-un-logiciel-qui-pourrait-aider-emmanuel-macron-a-simplifier-son-vocabulaire_2359745.html">T'as vu l'info ? Un logiciel qui pourrait aider Emmanuel Macron à simplifier son vocabulaire</a>, 12.9.2017, FranceInfo<br>
+                </li>
+                <li>
+                    <a href="http://lemonde.co.il/2017/09/12/un-logiciel-israelien-pour-dejargoniser-les-articles-scientifiques/">Un logiciel israélien pour déjargoniser les articles scientifiques</a>, 12.9.2017, Lemonde<br>
+                </li>
+                <li>
+                    <a href="http://www.tribunejuive.info/israel/un-logiciel-israelien-pour-dejargoniser-les-articles-scientifiques">Un logiciel israélien pour déjargoniser les articles scientifiques</a>, 12.9.2017, Tribune Juive<br>
+                </li>
+                <li>
+                    <a href="https://www.letemps.ch/sciences/2017/09/11/un-logiciel-dejargoniser-articles-scientifiques">Un logiciel pour «déjargoniser» les articles scientifiques</a>, 12.9.2017, Letemps<br>
+                </li>
+            </ul>
+        </div>
+        <br />
+        <div dir="rtl" >
+            <h4>עברית</h4>
+            <ul>
+                <li>
+                    <a href="https://lbscience.org/%D7%9E%D7%94-%D7%A9%D7%9C%D7%90-%D7%99%D7%94%D7%99%D7%94-%D7%A4%D7%A9%D7%95%D7%98-%D7%A4%D7%A9%D7%95%D7%98-%D7%9C%D7%90-%D7%99%D7%94%D7%99%D7%94-%D7%9E%D7%95%D7%91%D7%9F/">מה שלא יהיה פשוט – פשוט לא יהיה מובן</a>, 10.8.2017, מדע גדול בקטנה<br>
+                </li>
+                <li>
+                    <a href="http://www.davar1.co.il/80457/">הקץ לגיבריש</a>, 10.8.2017, דבר ראשון
+                </li>
+                <li>
+                    <a href="http://lnk.nana10.co.il/Article/?ArticleID=1260217">פיתוח חדש בטכניון ינגיש את האקדמיה לציבור</a>, 16.8.2017, ערוץ 10, לונדון את קירשנבאום
+                </li>
+            </ul>
+        </div>
+        <br />
+        <div dir="rtl">
+            <h4>عربيه</h4>
+            <ul>
+                <li>
+                    <a href="http://www.elakbardw.com/2017/08/19/%D9%85%D8%B1%D8%B5%D8%AF-%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D9%82%D8%A8%D9%84-%D8%A3%D8%AF%D8%A7%D8%A9-%D8%AC%D8%AF%D9%8A%D8%AF%D8%A9-%D8%AA%D8%B3%D9%87%D9%84-%D9%81%D9%87%D9%85-%D8%A7%D9%84%D9%85%D8%AC/">مرصد المستقبل أداة جديدة تسهل فهم المجتمع للكتابات العلمية</a>, 19.8.2017, الشبكة الدولية للأخبار الحصرية
+                </li>
+                <li>
+                    <a href="https://www.gulfeyes.net/technology/1813890.html">مرصد المستقبل أداة جديدة تسهل فهم المجتمع للكتابات العلمية</a>, 19.8.2017, عيون الخليج
+                </li>
+            </ul>
+        </div>
+    </section>
+    <section class="infoSection" id="buildYourOwnDeJargonizer">
+        <h3>Build your own De-Jargonizer</h3>
+        <p>
+            De-Jargonizer currently support English and Hebrew, in order to build your own De-Jargonizer, in your language, please follow the 
+              @Html.ActionLink("attached", "BuildYourOwnDeJargonizer", "Home") instruction.
+        </p>
+    </section>

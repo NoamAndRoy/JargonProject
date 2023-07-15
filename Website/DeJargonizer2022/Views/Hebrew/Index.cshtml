@@ -1,0 +1,146 @@
+﻿@using Newtonsoft.Json
+@model JargonProject.Models.ArticleGradingInfo
+
+@{
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string result = string.Empty,
+    common = string.Empty,
+    normal = string.Empty,
+    rare = string.Empty,
+    score = string.Empty,
+    numOfWords = string.Empty;
+
+    double rareNum = 5;
+
+    if (Model != null)
+    {
+        if (Model.Error != null)
+        {
+            result = Model.Error;
+        }
+        else
+        {
+            System.Text.StringBuilder text = new System.Text.StringBuilder();
+
+            foreach (string word in Model.Words)
+            {
+                string cleanedWord = JargonProject.Handlers.TextGrading.CleanWord(word).ToLower();
+                string type = "commonWord";
+
+                if (Model.RareWords.Contains(cleanedWord))
+                {
+                    type = "rareWord";
+                }
+                else if (Model.NormalWords.Contains(cleanedWord))
+                {
+                    type = "normalWord";
+                }
+
+                text.AppendFormat("<span class='{0}'>{1}</span>", type, word == "\r\n" ? "<br />" : word);
+            }
+
+            result = text.ToString();
+
+            rareNum = Math.Round((double)Model.RareWords.Count / Model.CleanedWords.Count * 100);
+
+            common = string.Format("{0}%, {1}", Math.Round((double)Model.CommonWords.Count / Model.CleanedWords.Count * 100), Model.CommonWords.Count);
+            normal = string.Format("{0}%, {1}", Math.Round((double)Model.NormalWords.Count / Model.CleanedWords.Count * 100), Model.NormalWords.Count);
+            rare = string.Format("{0}%, {1}", rareNum, Model.RareWords.Count);
+            score = string.Format("{0}", Math.Round(100 - ((Model.NormalWords.Count * 0.5f + Model.RareWords.Count) * 100 / Model.CleanedWords.Count)).ToString());
+            numOfWords = string.Format("{0}", Model.CleanedWords.Count.ToString());
+
+            <script>
+                $(document).ready(function () {
+                    $(document).scrollTop($('#resultDiv').position().top);
+                });
+            </script>
+        }
+    }
+}
+
+<link href='@(Url.Content("../Content/Site.css") + "?v=" + Guid.NewGuid().ToString())' rel='stylesheet' type='text/css' />
+<link href='@(Url.Content("../Content/TextGrading.css") + "?v=" + Guid.NewGuid().ToString())' rel='stylesheet' type='text/css' />
+
+<section id="textGradingSection">
+    <div id="fb-root"></div>
+    <script>
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));</script>
+
+    <h1 id="textGradingSectionTitle" class="sectionTitle">De-Jargonizer</h1>
+    <p>How accessible is your work? Paste your article or upload a file to analyze the amount of jargon in your writing.</p>
+
+    @using (Html.BeginForm("Index", "Hebrew", FormMethod.Post, new { id = "textGradingForm", enctype = "multipart/form-data" }))
+    {
+        <fieldset>
+            <legend>Time Period</legend>
+            <select id="timePriodDDL" name="timePriodDDL">
+                <option value="2012_2017" selected="selected">2012 - 2017</option>
+                <option value="2012_2015">2012 - 2015</option>
+            </select>
+        </fieldset>
+        <fieldset>
+            <legend>Article</legend>
+            <input type="file" id="ArticleFU" name="ArticleFU" draggable="true" placeholder="" value="HH" />
+            <p id="textManual">You can also insert the text manually:</p>
+            <textarea id="ContentTA" dir="rtl" name="ContentTA" class="input-group-sm"></textarea>
+        </fieldset>
+        <fieldset>
+            <button type="submit" id="gradeTextBtn" class="btn btn-primary btn-block btn-lg">Start</button>
+        </fieldset>
+    }
+
+    <div id="resultDiv">
+        <fieldset>
+            <legend>Result</legend>
+            <div id="statDiv">
+                <div id="resultGraph">
+                    <img id="resultScala" src="@Url.Action("Scala", "TextGrading", new { score =  rareNum})" />
+                </div>
+                <div>
+                    <span class="resultSpan">Common:</span>
+                    <span class="stat">@common</span>
+                </div>
+                <div>
+                    <span class="resultSpan">Mid-Frequency:</span>
+                    <span class="stat">@normal</span>
+                </div>
+                <div>
+                    <span class="resultSpan">Rare:</span>
+                    <span class="stat">@rare</span>
+                </div>
+                <div>
+                    <span id="scoreSpan" class="resultSpan">Suitability for general audience score:</span>
+                    <span id="scoreExplanation">A total score was defined as 0-100. If all the words in the text are common, the text score is 100; each mid-frequency or jargon word reduces the score. The score is based on the following equation: 
+                    <img id="equationImg" src="Content/Assets/scoreEquation.png" /></span>
+                    <span class="stat">@score</span>
+                </div>
+                <div>
+                    <span class="resultSpan">Number Of Words:</span>
+                    <span class="stat">@numOfWords</span>
+                </div>
+                @if (Model != null)
+                {
+                    <div>
+                        @using (Html.BeginForm("Download", "Hebrew", FormMethod.Post, new { id = "downloadForm", enctype = "multipart/form-data" }))
+                        {
+                            TempData["articleInfo"] = Model;
+                            <input type="submit" value="Download" id="downloadBtn" name="downloadBtn" class="btn btn-primary btn-block btn-lg" />
+                        }
+
+                        @{ string resultImageUrl = $"http://scienceandpublic.com/Hebrew/ImageResult?commonScore={common}&midScore={normal}&rareScore={rare}&totalScore={score}&numberOfWords={numOfWords}";}
+                        @*{ string resultImageUrl = $"http://localhost:53192/Hebrew/ImageResult?commonScore={common}&midScore={normal}&rareScore={rare}&totalScore={score}&numberOfWords={numOfWords}";}*@
+                        <div class="fb-share-button" data-href="@resultImageUrl" data-layout="button" data-size="large" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=@resultImageUrl&amp;src=sdkpreparse">Share</a></div>
+                    </div>
+                }
+            </div>
+            <div id="resultsContent" name="resultsContent" dir="rtl" class="input-group-sm">@Html.Raw(result)</div>
+        </fieldset>
+    </div>
+</section>

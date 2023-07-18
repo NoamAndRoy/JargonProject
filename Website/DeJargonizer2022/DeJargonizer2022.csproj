@@ -266,15 +266,6 @@
     <Content Include="Content\bootstrap.rtl.min.css.map" />
     <Content Include="InstanceMatrices\DataUKUS2017-2020.csv" />
     <Content Include="InstanceMatrices\DataUKUS2018-2021.csv" />
-    <Content Include="scienceandpublic.com.pem">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="scienceandpublic.com-ca.crt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="scienceandpublic.com.crt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="InstanceMatrices\names.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

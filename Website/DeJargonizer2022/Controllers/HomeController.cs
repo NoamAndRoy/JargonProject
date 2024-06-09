@@ -5,7 +5,13 @@ using System.Web.Mvc;
 namespace JargonProject.Controllers
 {
     public class HomeController : BaseController
-    {    
+    {
+        public ActionResult ServeApp()
+        {
+            var path = Server.MapPath("~/Content/dist/index.html");
+            return File(path, "text/html");
+        }
+
         public ActionResult Error()
         {
             return View();

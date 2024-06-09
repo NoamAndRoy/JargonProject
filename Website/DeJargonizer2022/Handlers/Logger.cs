@@ -66,7 +66,7 @@ namespace JargonProject.Handlers
 
                 string fileLocation = HttpContext.Current.Server.MapPath(@"~\Logs\AmountOfUses.txt");
 
-                ulong numberOfUses = !System.IO.File.Exists(fileLocation) ? 0 : ulong.Parse(System.IO.File.ReadAllText(fileLocation));
+                ulong numberOfUses = !File.Exists(fileLocation) ? 0 : ulong.Parse(File.ReadAllText(fileLocation).Replace(",", ""));
 
                 numberOfUses += Convert.ToUInt64(i_AmountOfUses);
 
@@ -82,7 +82,7 @@ namespace JargonProject.Handlers
             string fileLocation = HttpContext.Current.Server.MapPath(@"~\Logs\AmountOfUses.txt");
             ulong numberOfUses = 0;
 
-            if(System.IO.File.Exists(fileLocation))
+            if(File.Exists(fileLocation))
             {
                 using (FileStream stream = File.Open(fileLocation, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
@@ -90,7 +90,7 @@ namespace JargonProject.Handlers
                     {
                         while (!reader.EndOfStream)
                         {
-                            numberOfUses = ulong.Parse(reader.ReadToEnd());
+                            numberOfUses = ulong.Parse(reader.ReadToEnd().Replace(",", ""));
                         }
                     }
                 }

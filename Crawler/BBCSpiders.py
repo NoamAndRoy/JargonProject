@@ -1,25 +1,18 @@
-import scrapy
-import os
-import re
-import csv
+import os, json
 import datetime
-import operator
-from string import printable
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
-from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 from scrapy.signalmanager import SignalManager
 from scrapy import signals
-from scrapy.xlib.pydispatch import dispatcher
-from BBCSpider.items import WebSite
+from pydispatch import dispatcher
+from items import WebSite
 
 class BBCSpiders(CrawlSpider):
 	name = "BBCSpiders"
 	allowed_domains = ["bbc.com"]
 	scienceCategories = []
 	
-	visitedUrlsGeneral = []
-	visitedUrlsScience = []
+	visitedUrls = {}
 	savedToday = False
 
 	
@@ -66,82 +59,94 @@ class BBCSpiders(CrawlSpider):
 			 				follow=True),
 		
 		Rule(LinkExtractor(allow=(),
-						    deny=(r'.*(m\.|\.test\.|\.stage\.|%|comments|\/live\/|\/athlete\/|\/weather\/).*'),
-						  	restrict_xpaths="//div[@role='main']"),
+						    deny=(r'.*(m\.|\.test\.|\.stage\.|%|comments|\/live\/|\/athlete\/|\/weather\/).*')),
 			 				follow=True),
     )
 	
 	def parseNews(self, response):
-		science = False
-		for url in self.scienceCategories:
-			if url[:-1] in response.url:
-				science = True
-				break
 		item = WebSite()
 		item['url'] = response.url		
-		item['year'] = datetime.datetime.fromtimestamp(int(response.xpath("//@data-seconds")[0].extract())).year
-			
-		if item['year'] >= 2012 and item['year'] <= 2015:
-			if science is True:
-				self.visitedUrlsScience.append(response.url)
-			else:
-				self.visitedUrlsGeneral.append(response.url)
-			self.logProgress()
-			return item
+		
+		tmp_year = response.xpath("//@data-seconds")
+		
+		if tmp_year is not None and len(tmp_year) > 0:
+			item['year'] = datetime.datetime.fromtimestamp(int(tmp_year[0].extract())).year
+
+		self.logItem(response, item)
+
 	
 	def parseStory(self, response):
-		science = False
-		for url in self.scienceCategories:
-			if url[:-1] in response.url:
-				science = True
-				break
 		item = WebSite()
 		item['url'] = response.url	
-		item['year'] = int(response.xpath("//span[@class='publication-date index-body']//text()")[0].extract()[-4:])
 
-		if item['year'] >= 2012 and item['year'] <= 2015:
-			if science is True:
-				self.visitedUrlsScience.append(response.url)
-			else:
-				self.visitedUrlsGeneral.append(response.url)	
-			self.logProgress()
-			return item
+		tmp_year = response.xpath("//span[@class='publication-date index-body']//text()")
+		
+		if tmp_year is not None and len(tmp_year) > 0:
+			item['year'] = int(tmp_year[0].extract()[-4:])
+
+		self.logItem(response, item)
 	
 	def parseSport(self, response):
-		
 		item = WebSite()
 		item['url'] = response.url
-		item['year'] = datetime.datetime.fromtimestamp(int(response.xpath("//@data-timestamp")[0].extract())).year
 
-		if item['year'] >= 2012 and item['year'] <= 2015:
-			self.visitedUrlsGeneral.append(response.url)
-			self.logProgress()
-			return item
+		tmp_year = response.xpath("//@data-timestamp")
+		
+		if tmp_year is not None and len(tmp_year) > 0:
+			item['year'] = datetime.datetime.fromtimestamp(int(tmp_year[0].extract())).year
+
+		self.logItem(response, item)
+
+		self.logItem(response, item)
+
+		
+	def logItem(self, response, item):
+		if item.get('year') is None:
+			json_ld_script = response.xpath('//script[@type="application/ld+json"]/text()').get()
+
+			if json_ld_script:
+				json_data = json.loads(json_ld_script)
+				date_modified = json_data.get('dateModified', json_data.get('uploadDate'))
+
+				if date_modified is None:
+					return 
+				# print('datetimeVVVVVV')
+				# print(date_modified[:-1])
+				# print(datetime.datetime.fromisoformat(date_modified[:-1]))
+				# print('datetime^^^^^^')
+				item['year'] = datetime.datetime.fromisoformat(date_modified[:-1]).year
+
+		if item.get('year') is not None:
+			if item['year'] <= 24:
+				item['year'] += 2000
+				
+			if item['year'] >= 2012 and item['year'] <= 2023:
+				if item['year'] not in self.visitedUrls:
+					self.visitedUrls[item['year']] = []
+
+				self.visitedUrls[item['year']].append(item['url'])
+				self.logProgress()
+				return item
 
 	def logProgress(self):
 		now = datetime.datetime.now()
 		if now.replace(hour=21, minute=0, second=0, microsecond=0) <= now:
 			if self.savedToday is False:
-				with open("visitedUrlsGeneral"+datetime.datetime.strftime(now, '%Y-%m-%d %H:%M:%S')+".txt", 'a') as f:
-					for url in self.visitedUrlsGeneral:
-						f.write(url+"\n")
-					f.close()
-				with open("visitedUrlsScience"+datetime.datetime.strftime(now, '%Y-%m-%d %H:%M:%S')+".txt", 'a') as f:
-					for url in self.visitedUrlsScience:
-						f.write(url+"\n")
-					f.close()
+
+				for year in self.visitedUrls:
+					with open(f"visitedUrls_{year}_{datetime.datetime.strftime(now, '%Y-%m-%d %H:%M:%S')}.txt", 'a') as f:
+						for url in self.visitedUrls[year]:
+							f.write(url+"\n")
+						f.close()
+
 				self.savedToday = True
 		else:
 			self.savedToday = False
 
 	
 	def spiderClosed(self, spider):		
-		with open("visitedUrlsGeneral.txt", 'a') as f:
-			for url in self.visitedUrlsGeneral:
-				f.write(url+"\n")
-			f.close()
-
-		with open("visitedUrlsScience.txt", 'a') as f:
-			for url in self.visitedUrlsScience:
-				f.write(url+"\n")
-			f.close()
+		for year in self.visitedUrls:
+			with open(f"visitedUrls_{year}.txt", 'a') as f:
+				for url in self.visitedUrls[year]:
+					f.write(url+"\n")
+				f.close()

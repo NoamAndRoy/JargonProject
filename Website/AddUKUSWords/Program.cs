@@ -1,4 +1,6 @@
-﻿using LumenWorks.Framework.IO.Csv;
+﻿using JargonProject.Handlers;
+using LumenWorks.Framework.IO.Csv;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,18 +13,105 @@ namespace AddUKUSWords
     {
         static void Main(string[] args)
         {
-            var lines = loadUSUKLines("Words-Worldwide-Word-list-UK-US-2009.docx");
-            var instancesMatrixGeneral16 = loadInstancesMatrix("Data2016.csv");
-            var instancesMatrixGeneral17 = loadInstancesMatrix("Data2017.csv");
-            //var instancesMatrixGeneral18p1 = loadInstancesMatrix("Data2018p1.csv");
-            var instancesMatrixGeneral18p2 = loadInstancesMatrix("Data2018p2.csv");
-            var instancesMatrixGeneral19 = loadInstancesMatrix("Data2019.csv");
+            GenerateDataDict(2012, 2015);
+            GenerateDataDict(2013, 2016);
+            GenerateDataDict(2014, 2017);
+            GenerateDataDict(2015, 2018);
+            GenerateDataDict(2016, 2019);
+            GenerateDataDict(2017, 2020);
+            GenerateDataDict(2018, 2021);
+            GenerateDataDict(2019, 2022);
+            GenerateDataDict(2020, 2023);
+            //CompareDicts();
+        }
 
-            var instanceMatrix = mergeMatrices(instancesMatrixGeneral18p2,
+        public static void CompareDicts()
+        {
+            string folderPath = @"F:\royosef\projects\JargonProject\GeneralSpider\article_files_2018";
+
+            string[] textFiles = Directory.GetFiles(folderPath, "*.txt");
+
+            var results = new Dictionary<string, int>();
+            TextGrading.Lang = Language.English2016_2019;
+
+            int i = 0;
+
+            foreach (string filePath in textFiles)
+            {
+                i++;
+                Console.WriteLine($"{i}/{textFiles.Length}");
+                string textContent = File.ReadAllText(filePath);
+
+                if (string.IsNullOrEmpty(textContent))
+                { 
+                    results[filePath] = -1;
+                }
+                else
+                {
+                    var a = TextGrading.AnalyzeSingleText(textContent);
+
+                    results[filePath] = a.Score;
+                }
+
+                if (i == 5) break;
+            }
+
+            TextGrading.Lang = Language.English2016_2019_2024;
+
+            foreach (string filePath in results.Keys)
+            {
+                string textContent = File.ReadAllText(filePath);
+
+                if (string.IsNullOrEmpty(textContent))
+                {
+                    Console.WriteLine($"Processed file: {filePath}, Empty");
+                }
+                else
+                {
+                    var b = TextGrading.AnalyzeSingleText(textContent);
+
+                    var value1 = results[filePath];
+                    var value2 = b.Score;
+                    var difference = value1 - value2;
+                    var percentage_difference = value1 != 0 ? (difference / value1) * 100 : 0;
+
+                    Console.WriteLine($"Processed file: {filePath}, {value1}, {value2}, {difference}, {percentage_difference}");
+                }
+            }
+
+
+
+            Console.WriteLine("All files have been processed.");
+        }
+
+        public static void GenerateDataDict(int start, int end)
+        {
+            var lines = loadUSUKLines("Words-Worldwide-Word-list-UK-US-2009.docx");
+
+            var instanceMatrix = loadInstancesMatrix($"GeneralData_{start}.csv");
+
+            for(int i = start+1; i <= end; i++)
+            {
+                instanceMatrix = mergeMatrices(instanceMatrix, loadInstancesMatrix($"GeneralData_{i}.csv"));
+            }
+
+            UpdateInstancesMatrix(lines, instanceMatrix);
+            writeCSV(instanceMatrix, $"T_2024DataUKUS{start}-{end}.csv");
+        }
+
+        public static void GenerateDataDict()
+        {
+            var lines = loadUSUKLines("Words-Worldwide-Word-list-UK-US-2009.docx");
+            var instancesMatrixGeneral16 = loadInstancesMatrix("GeneralData_2016.csv");
+            var instancesMatrixGeneral17 = loadInstancesMatrix("GeneralData_2017.csv");
+            var instancesMatrixGeneral18 = loadInstancesMatrix("GeneralData_2018.csv");
+            var instancesMatrixGeneral19 = loadInstancesMatrix("GeneralData_2019.csv");
+
+            var instanceMatrix = mergeMatrices(instancesMatrixGeneral18,
                                                         mergeMatrices(instancesMatrixGeneral19,
                                                             mergeMatrices(instancesMatrixGeneral16, instancesMatrixGeneral17)));
             UpdateInstancesMatrix(lines, instanceMatrix);
-            writeCSV(instanceMatrix, "DataUKUS2016-2019.csv");
+            writeCSV(instanceMatrix, "2024DataUKUS2016-2019.csv");
         }
 
         public static Dictionary<string, int> mergeMatrices(Dictionary<string, int> i_Matrix1, Dictionary<string, int> i_Matrix2)

@@ -351,6 +351,7 @@
     <Content Include="Content\dist\assets\Raleway-VariableFont_wght-Cinel4j-.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="InstanceMatrices\2024DataUKUS2016-2019.csv" />
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />
     <Content Include="Scripts\jquery-3.4.1.min.js" />

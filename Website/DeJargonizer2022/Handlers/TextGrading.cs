@@ -26,6 +26,7 @@ namespace JargonProject.Handlers
         English2016_2019,
         English2017_2020,
         English2018_2021,
+        English2016_2019_2024,
     }
 
     public enum WordType
@@ -46,8 +47,16 @@ namespace JargonProject.Handlers
         private static int m_Normal;
         private static bool m_WordsLoaded;
         private static bool m_NamesLoaded;
+        private static Language lang;
 
-        public static Language Lang { get; set; }
+        public static Language Lang
+        {
+            get => lang; set
+            {
+                m_WordsLoaded = false;
+                lang = value;
+            }
+        }
 
         static TextGrading()
         {
@@ -82,11 +91,13 @@ namespace JargonProject.Handlers
                 if (!m_WordsLoaded)
                 {
                     loadWords();
+                    m_WordsLoaded = true;
                 }
 
                 if (!m_NamesLoaded)
                 {
                     loadNames();
+                    m_NamesLoaded = true;
                 }
 
                 articleGradingInfo = analyzeArticle(i_Text);
@@ -322,6 +333,11 @@ namespace JargonProject.Handlers
                     instancesMatrixRelativePath = @"~\InstanceMatrices\DataUKUS2016-2019.csv";
                     m_Common = 1000;
                     m_Normal = 50;
+                    break;                
+                case Language.English2016_2019_2024:
+                    instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2016-2019.csv";
+                    m_Common = 1000;
+                    m_Normal = 50;
                     break;
                 case Language.English2017_2020:
                     instancesMatrixRelativePath = @"~\InstanceMatrices\DataUKUS2017-2020.csv";
@@ -336,9 +352,19 @@ namespace JargonProject.Handlers
                     break;
             }
 
-            var instancesMatrixFullPath = HttpContext.Current.Server.MapPath(instancesMatrixRelativePath);
+            string instancesMatrixFullPath;
+
+            if (HttpContext.Current == null)
+            {
+                instancesMatrixFullPath = Path.Combine(Environment.CurrentDirectory, instancesMatrixRelativePath.Substring(2));
+            }
+            else
+            {
+                instancesMatrixFullPath = HttpContext.Current.Server.MapPath(instancesMatrixRelativePath);
+            }
 
             if (string.IsNullOrEmpty(instancesMatrixFullPath)) return;
+
             TextReader data = new StreamReader(new FileStream(instancesMatrixFullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
             var csv = new CsvReader(data, new CsvConfiguration(CultureInfo.CurrentCulture) { HasHeaderRecord = false });
 
@@ -353,7 +379,16 @@ namespace JargonProject.Handlers
 
         private static void loadNames()
         {
-            var namesPath = HttpContext.Current.Server.MapPath(@"~\InstanceMatrices\names.csv");
+            string namesPath;
+
+            if (HttpContext.Current ==  null)
+            {
+                namesPath = Path.Combine(Environment.CurrentDirectory, @"InstanceMatrices\names.csv");
+            }
+            else
+            {
+                namesPath = HttpContext.Current.Server.MapPath(@"~\InstanceMatrices\names.csv");
+            }
 
             if (string.IsNullOrEmpty(namesPath)) return;
 

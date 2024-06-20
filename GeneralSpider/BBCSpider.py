@@ -3,18 +3,16 @@ import os
 import re
 import csv
 import datetime
-import operator
 from string import printable
-from scrapy.spiders import CrawlSpider, Rule
+from scrapy.spiders import Rule
 from scrapy.linkextractors import LinkExtractor
-from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 from scrapy.signalmanager import SignalManager
 from scrapy import signals
-from scrapy.xlib.pydispatch import dispatcher
-from GeneralUrls.items import WebSite
+from pydispatch import dispatcher
+from items import WebSite
 
 class GeneralUrls(scrapy.Spider):
-	name = "BBCSpider"
+	name = "BBCWordsSpider"
 	allowed_domains = ["bbc.com"]
 	
 	generalWords = {}
@@ -33,36 +31,16 @@ class GeneralUrls(scrapy.Spider):
 		for c in printable:
 			if c.isalpha() == False and c != '\'':
 				self.splitOptions.append(c)
+
+		self.start_urls  = self.getSeeds()
 	
-	def getSeeds():
+	def getSeeds(self):
 		seeds = []
 		
-		with open(os.path.join(os.path.dirname(__file__), 'GeneralUrls.txt'), 'r') as seedFile:
+		with open(os.path.join(os.path.dirname(__file__), f'generalUrls_{self.year}.txt'), 'r') as seedFile:
 			for line in seedFile:
 				seeds.append(line[:-1])
 			return seeds
-	
-	start_urls  = getSeeds()
-	
-	rules = (	
-		Rule(LinkExtractor(allow=(r'(\bnews\b)\D+(-\d+)$'),
-						    deny=(r'.*(m\.|\.test\.|\.stage\.|%|comments|\/live\/|\/athlete\/|\/weather\/).*'),
-							restrict_xpaths="//body"),
-			 				callback='parseNews',
-			 				follow=False),
-		
-		Rule(LinkExtractor(allow=(r'(\b\/story\/\b)\d+(-\D+)$'),
-						    deny=(r'.*(m\.|\.test\.|\.stage\.|%|comments|\/live\/|\/athlete\/|\/weather\/).*'),
-							restrict_xpaths="//body"),
-			 				callback='parseStory',
-			 				follow=False),
-		
-		Rule(LinkExtractor(allow=(r'(\b\/sport\/\b)\D+(\d+)$'),
-						    deny=(r'.*(m\.|\.test\.|\.stage\.|%|comments|\/live\/|\/athlete\/|\/weather\/).*'),
-							restrict_xpaths="//body"),
-			 				callback='parseSport',
-			 				follow=False),
-    )
 	
 	def split(self, txt, seps):
 		default_sep = seps[0]
@@ -108,12 +86,10 @@ class GeneralUrls(scrapy.Spider):
 					wordsDict[word] = 1
 					
 	def parse(self, response):
-		if re.search(r'(\b\/sport\/\b)\D+(\d+)$', response.url, re.I) :
-			self.parseSport(response)
+		if re.search(r'(\b\/sport\/\b)\D+(\d+)$', response.url, re.I) or re.search(r'(\bnews\b)\D+(-\d+)$', response.url, re.I):
+			self.parseNews(response)
 		elif re.search(r'(\b\/story\/\b)\d+(-\D+)$', response.url, re.I):
 			self.parseStory(response)
-		elif re.search(r'(\bnews\b)\D+(-\d+)$', response.url, re.I):
-			self.parseNews(response)
 	
 	def parseNews(self, response):	
 		wordsDict = self.generalWords
@@ -122,14 +98,13 @@ class GeneralUrls(scrapy.Spider):
 		self.visitedUrls.append(response.url)
 		item['content'] = ''
 
-		for sel in response.xpath('//*[@class="story-body__inner"]//p//text()'):
-			item['content'] += sel.extract().strip().encode('ascii','ignore')
+		for sel in response.xpath('//main[@id="main-content"]//article//div[@data-component="text-block"]//p//text()'):
+			item['content'] += sel.extract().strip()#.encode('ascii','ignore')
 
+		# print('\n\n\n---------------------------------------------\n\n\n')
+		# print(item['content'])
+		# print('\n\n\n---------------------------------------------\n\n\n')
 
-		for sel in response.xpath("//*[@class='story-inner']//p//text()"):
-			item['content'] += sel.extract().strip().encode('ascii','ignore')
-
-			
 		self.updateWordsCount(item['content'], wordsDict)
 		self.logProgress()
 		
@@ -143,36 +118,22 @@ class GeneralUrls(scrapy.Spider):
 		item['content'] = ''
 
 		for sel in response.xpath('//*[@class="body-content"]//p//text()'):
-			item['content'] += sel.extract().strip().encode('ascii','ignore')
+			item['content'] += sel.extract().strip()#.encode('ascii','ignore')
 
 		self.updateWordsCount(item['content'], wordsDict)
 		self.logProgress()
 		
 		return item
-	
-	def parseSport(self, response):
-		wordsDict = self.generalWords
-		
-		item = WebSite()
-		self.visitedUrls.append(response.url)
-		item['content'] = ''
 
-		for sel in response.xpath('//*[@id="story-body"]//p//text()'):
-			item['content'] += sel.extract().strip().encode('ascii','ignore')
-
-		self.updateWordsCount(item['content'], wordsDict)
-		self.logProgress()
-			
-		return item
 							  
 	def logProgress(self):
 		now = datetime.datetime.now()
-		if now.replace(hour=21, minute=0, second=0, microsecond=0) <= now:
+		if now.replace(hour=1, minute=0, second=0, microsecond=0) <= now:
 			if self.savedToday is False:
-				self.writeSortedDictToFile("GeneralData"+datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')+".csv", self.generalWords)
-				with open("visitedUrls"+datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')+".txt",'a') as f:
+				self.writeSortedDictToFile(f"GeneralData_{self.year}_{datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H-%M-%S')}.csv", self.generalWords)
+				with open(f"visitedUrls_{self.year}_{datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H-%M-%S')}.txt",'a') as f:
 					for url in self.visitedUrls:
-						f.write(url+"\n")
+						f.write(url + '\n')
 					f.close()
 				self.savedToday = True
 		else:
@@ -180,7 +141,7 @@ class GeneralUrls(scrapy.Spider):
 
 	def writeSortedDictToFile(self, fileName, dictName):
 		with open(fileName,'a') as f:
-			writer = csv.writer(f)
+			writer = csv.writer(f, lineterminator='\n')
 
 			sortedKeysByValues = sorted(dictName, key = dictName.__getitem__, reverse = True)
 
@@ -190,9 +151,9 @@ class GeneralUrls(scrapy.Spider):
 	def spiderClosed(self, spider):		
 		#self.writeSortedDictToFile("ScienceData.csv", self.scienceWords)
 
-		self.writeSortedDictToFile("GeneralData.csv", self.generalWords)
-		with open("visitedUrls.txt",'a') as f:
+		self.writeSortedDictToFile(f"GeneralData_{self.year}.csv", self.generalWords)
+		with open(f"visitedUrls_{self.year}.txt",'a') as f:
 			for url in self.visitedUrls:
-				f.write(url+"\n")
+				f.write(url + '\n')
 			f.close()
 	#self.crawler.engine.close_spider(BBCSpiders, 'cancelled') #stop spider

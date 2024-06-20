@@ -134,7 +134,7 @@ class BBCSpiders(CrawlSpider):
 			if self.savedToday is False:
 
 				for year in self.visitedUrls:
-					with open(f"visitedUrls_{year}_{datetime.datetime.strftime(now, '%Y-%m-%d %H:%M:%S')}.txt", 'a') as f:
+					with open(f"generalUrls_{year}_{datetime.datetime.strftime(now, '%Y-%m-%d %H:%M:%S')}.txt", 'a') as f:
 						for url in self.visitedUrls[year]:
 							f.write(url+"\n")
 						f.close()
@@ -146,7 +146,7 @@ class BBCSpiders(CrawlSpider):
 	
 	def spiderClosed(self, spider):		
 		for year in self.visitedUrls:
-			with open(f"visitedUrls_{year}.txt", 'a') as f:
+			with open(f"generalUrls_{year}.txt", 'a') as f:
 				for url in self.visitedUrls[year]:
 					f.write(url+"\n")
 				f.close()

@@ -309,11 +309,6 @@
     <Content Include="Logs\Log.txt" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include="InstanceMatrices\DataUKUS2012-2015.csv" />
-    <Content Include="InstanceMatrices\DataUKUS2013-2016.csv" />
-    <Content Include="InstanceMatrices\DataUKUS2014-2017.csv" />
-    <Content Include="InstanceMatrices\DataUKUS2015-2018.csv" />
-    <Content Include="InstanceMatrices\DataUKUS2016-2019.csv" />
     <Content Include="InstanceMatrices\Hebrew2012-2015.csv" />
     <Content Include="InstanceMatrices\Hebrew2012-2017.csv" />
     <Content Include="Content\Assets\How to build a De-Jargonizer.docx" />
@@ -334,8 +329,6 @@
     <Content Include="Content\bootstrap-utilities.rtl.min.css.map" />
     <Content Include="Content\bootstrap.rtl.css.map" />
     <Content Include="Content\bootstrap.rtl.min.css.map" />
-    <Content Include="InstanceMatrices\DataUKUS2017-2020.csv" />
-    <Content Include="InstanceMatrices\DataUKUS2018-2021.csv" />
     <Content Include="InstanceMatrices\names.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -352,6 +345,14 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="InstanceMatrices\2024DataUKUS2016-2019.csv" />
+    <Content Include="InstanceMatrices\2024DataUKUS2012-2015.csv" />
+    <Content Include="InstanceMatrices\2024DataUKUS2013-2016.csv" />
+    <Content Include="InstanceMatrices\2024DataUKUS2014-2017.csv" />
+    <Content Include="InstanceMatrices\2024DataUKUS2015-2018.csv" />
+    <Content Include="InstanceMatrices\2024DataUKUS2017-2020.csv" />
+    <Content Include="InstanceMatrices\2024DataUKUS2018-2021.csv" />
+    <Content Include="InstanceMatrices\2024DataUKUS2019-2022.csv" />
+    <Content Include="InstanceMatrices\2024DataUKUS2020-2023.csv" />
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />
     <Content Include="Scripts\jquery-3.4.1.min.js" />

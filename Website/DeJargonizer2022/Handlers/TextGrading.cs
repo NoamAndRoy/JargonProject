@@ -26,7 +26,8 @@ namespace JargonProject.Handlers
         English2016_2019,
         English2017_2020,
         English2018_2021,
-        English2016_2019_2024,
+        English2019_2022,
+        English2020_2023,
     }
 
     public enum WordType
@@ -310,43 +311,48 @@ namespace JargonProject.Handlers
                     m_Normal = 5;
                     break;
                 case Language.English2014_2017:
-                    instancesMatrixRelativePath = @"~\InstanceMatrices\DataUKUS2014-2017.csv";
+                    instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2014-2017.csv";
                     m_Common = 1000;
                     m_Normal = 50;
                     break;
                 case Language.English2013_2016:
-                    instancesMatrixRelativePath = @"~\InstanceMatrices\DataUKUS2013-2016.csv";
+                    instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2013-2016.csv";
                     m_Common = 1000;
                     m_Normal = 50;
                     break;
                 case Language.English2012_2015:
-                    instancesMatrixRelativePath = @"~\InstanceMatrices\DataUKUS2012-2015.csv";
+                    instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2012-2015.csv";
                     m_Common = 1000;
                     m_Normal = 50;
                     break;
                 case Language.English2015_2018:
-                    instancesMatrixRelativePath = @"~\InstanceMatrices\DataUKUS2015-2018.csv";
+                    instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2015-2018.csv";
                     m_Common = 1000;
                     m_Normal = 50;
                     break;
                 case Language.English2016_2019:
-                    instancesMatrixRelativePath = @"~\InstanceMatrices\DataUKUS2016-2019.csv";
-                    m_Common = 1000;
-                    m_Normal = 50;
-                    break;                
-                case Language.English2016_2019_2024:
                     instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2016-2019.csv";
                     m_Common = 1000;
                     m_Normal = 50;
-                    break;
+                    break;                
                 case Language.English2017_2020:
-                    instancesMatrixRelativePath = @"~\InstanceMatrices\DataUKUS2017-2020.csv";
+                    instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2017-2020.csv";
                     m_Common = 1000;
                     m_Normal = 50;
                     break;
                 case Language.English2018_2021:
+                    instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2018-2021.csv";
+                    m_Common = 1000;
+                    m_Normal = 50;
+                    break;
+                case Language.English2019_2022:
+                    instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2019-2022.csv";
+                    m_Common = 1000;
+                    m_Normal = 50;
+                    break;
+                case Language.English2020_2023:
                 default:
-                    instancesMatrixRelativePath = @"~\InstanceMatrices\DataUKUS2018-2021.csv";
+                    instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2020-2023.csv";
                     m_Common = 1000;
                     m_Normal = 50;
                     break;

@@ -25,7 +25,7 @@ public class HalfLifeController : ApiController
 
     private readonly HttpClient client;
     private readonly string apiUrl = "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
-    private readonly string apiKey = "<openapi-secret>"; 
+    private readonly string apiKey = "<openapi-secret>";  // Replace 'openapi-secret' with your actual API key
 
     readonly Dictionary<int, (int min, int max)> wordCountRanges = new Dictionary<int, (int min, int max)>
     {
@@ -219,7 +219,7 @@ public class HalfLifeController : ApiController
 
         history.CurrentStage++;
 
-        TextGrading.Lang = Language.English2018_2021;
+        TextGrading.Lang = Language.English2020_2023;
         var articleGradingInfo = TextGrading.AnalyzeSingleText(text.Trim());
 
         var scoreFeedback = $"Your suitability for a general audience score was {articleGradingInfo.Score}. <br />{(articleGradingInfo.Score > 90 ? "Nicely done!" : "Try to get it higher in the next round.")}";

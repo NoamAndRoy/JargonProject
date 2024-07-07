@@ -25,7 +25,7 @@ public class PersuasiveController : ApiController
 
     private readonly HttpClient client;
     private readonly string apiUrl = "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
-    private readonly string apiKey = "openapi-secret";  // Replace 'openapi-secret' with your actual API key
+    private readonly string apiKey = "<openapi-secret>";  // Replace 'openapi-secret' with your actual API key
 
     readonly Dictionary<int, (int min, int max)> wordCountRanges = new Dictionary<int, (int min, int max)>
     {
@@ -157,7 +157,7 @@ public class PersuasiveController : ApiController
                 };
 
 
-                TextGrading.Lang = Language.English2018_2021;
+                TextGrading.Lang = Language.English2020_2023;
                 var articleGradingInfo = TextGrading.AnalyzeSingleText(lastUserText.Text.Trim());
 
                 if (articleGradingInfo.RareWordsSyns.Count > 0)
@@ -179,8 +179,8 @@ public class PersuasiveController : ApiController
 
                 responses.AddRange(new List<string>
                 {
-                    rephrasedText,
                     gptSuggestion,
+                    rephrasedText,
                     "Please look at the feedback above and create a new, revised version:",
                 });
 
@@ -214,7 +214,6 @@ public class PersuasiveController : ApiController
 
                 return new List<string> {
                     "Is this reflected in your summary?",
-                    history.TextLogos,
                     "<div class='chat-option'>(1) Yes </div>" +
                     "<div class='chat-option'>(2) No</div>" +
                     "<div class='chat-option'>(3) Not sure</div>",
@@ -283,7 +282,6 @@ public class PersuasiveController : ApiController
 
                 return new List<string> {
                     "Is this reflected in your summary?",
-                    history.TextPathos,
                     "<div class='chat-option'>(1) Yes </div>" +
                     "<div class='chat-option'>(2) No</div>" +
                     "<div class='chat-option'>(3) Not sure</div>",
@@ -400,8 +398,8 @@ public class PersuasiveController : ApiController
 
                 return new List<string> {
                     "We hope you have learned more on persuasive writing!",
-                    "We are conducting research on academic writing, abd we would appreciate it if you would give us your consent to use your " +
-                    "writing outcomes to assess how people write abd use this tool. We will not share the content of your writing, just evaluate it." +
+                    "We are conducting research on academic writing, and we would appreciate it if you would give us your consent to use your " +
+                    "writing outcomes to assess how people write and use this tool. We will not share the content of your writing, just evaluate it." +
                     "<div class='chat-option'>(1) I give my consent</div>" +
                     "<div class='chat-option'>(2) I do not give my consent</div>",
                 };
@@ -569,7 +567,7 @@ public class PersuasiveController : ApiController
                 prompt = "Please rewrite the following science text for readers who have learned science up to the age of 18, when they finished high school. Ensure that the language is comprehensible and avoids specialized terminology beyond a high school level understanding:";
                 break;
             case "Adult":
-                prompt = "Please rewrite the following science text for a diverse audience of adults with varying levels of science education, ranging from completing studies at age 15 to taking additional courses long ago. Ensure that the language is accessible and understandable to individuals with a basic understanding of science, avoiding overly technical terms and concepts:";
+                prompt = "Please rewrite the following science text for a diverse audience of adults with varying levels of science education, ranging from completing studies at age 15 to taking additional courses long ago. Ensure that the language is accessible and understandable to individuals with a basic understanding of science, avoiding overly technical terms and concepts. You may add additional and important information on the topic:";
                 break;
             case "Pathos":
                 prompt = string.Format("Please check this research summary for an {0} audience and comment if it reflects {0} value.", args);

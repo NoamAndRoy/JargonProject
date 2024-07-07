@@ -22,6 +22,13 @@ namespace DeJargonizer2022
                 defaults: new { controller = "TextGrading", action = "Index", id = UrlParameter.Optional }
             );
 
+
+            routes.MapRoute(
+                name: "Home",
+                url: "de-jargonizer/{controller}/{action}/{id}",
+                defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+            );
+
             // Setup a catch-all route to serve the React application from the dist/index.html on other routes
             routes.MapRoute(
                 name: "SPA-Fallback",

@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" href="Content/GroupGrading.css">
+<link rel="stylesheet" href="~/Content/GroupGrading.css">
 <section id="textGradingSection">
     <h1 id="textGradingSectionTitle" class="sectionTitle">Group Grading</h1>
     @using (Html.BeginForm("Index", "GroupGrading", FormMethod.Post, new { id = "groupGradingForm", enctype = "multipart/form-data" }))

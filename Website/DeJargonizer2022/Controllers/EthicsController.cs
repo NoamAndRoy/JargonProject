@@ -23,14 +23,14 @@ public class EthicsController : ApiController
 
     private readonly HttpClient client;
     private readonly string apiUrl = "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
-    private readonly string apiKey = "openapi-secret";  // Replace 'openapi-secret' with your actual API key
+    private readonly string apiKey = "<openapi-secret>";  // Replace 'openapi-secret' with your actual API key
 
     readonly Dictionary<int, (int min, int max)> wordCountRanges = new Dictionary<int, (int min, int max)>
     {
         { 120, (100, 140) },
         { 3, (2, 5) },
         { 10, (2, 30) },
-        { 20, (15, 30) },
+        { 20, (50, 70) },
     };
 
     public class ConversationHistory
@@ -101,7 +101,7 @@ public class EthicsController : ApiController
                 history.OriginalText = lastUserText.Text;
 
                 return new List<string> {
-                    "Take your above description and add 1-2 potential ways to mitigate the issue. Your text should be 120 words.",
+                    "Take your above description and add 1-2 potential ways to resolve the issue. Your text should be 120 words.",
                 };
 
             case 2:
@@ -116,11 +116,11 @@ public class EthicsController : ApiController
                 history.MitigateText = lastUserText.Text;
 
                 var rephrasedText = await RephraseText(lastUserText.Text);
-                var gptSuggestion = "Looking at the above suggestions and your texts, please create a final 120-word version of the research aim, ethical issue and potential solution. New/revised version:";
 
                 return new List<string> {
+                    "Here is one suggestion from ChatGPT about how to improve your text:",
                     rephrasedText,
-                    gptSuggestion,
+                    "Looking at the above suggestions and your texts, please create a final 120-word version of the research aim, ethical issue and potential solution. New/revised version:",
                 };
 
             case 3:
@@ -131,7 +131,7 @@ public class EthicsController : ApiController
                     return new List<string> { response3 };
                 }
 
-                history.CurrentStage++;
+                history.CurrentStage++; 
                 history.FinalText = lastUserText.Text;
 
                 return new List<string> {

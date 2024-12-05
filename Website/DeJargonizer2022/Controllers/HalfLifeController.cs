@@ -14,6 +14,10 @@ using JargonProject.Models;
 using System.Diagnostics;
 using System.Web;
 using Newtonsoft.Json.Linq;
+using System.Security.Claims;
+using Supabase.Postgrest.Models;
+using System.Net; 
+using Supabase.Postgrest.Attributes;
 
 public class HalfLifeController : ApiController
 {
@@ -25,7 +29,7 @@ public class HalfLifeController : ApiController
 
     private readonly HttpClient client;
     private readonly string apiUrl = "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
-    private readonly string apiKey = "<openapi-secret>";  // Replace 'openapi-secret' with your actual API key
+    private readonly string apiKey = "openapi-secret";  // Replace 'openapi-secret' with your actual API key
 
     readonly Dictionary<int, (int min, int max)> wordCountRanges = new Dictionary<int, (int min, int max)>
     {
@@ -34,22 +38,129 @@ public class HalfLifeController : ApiController
         { 30, (20, 40) }
     };
 
+    private readonly string SUPABASE_URL = "https://jxahsjtmygsbzlmteuxb.supabase.co";
+    private readonly string SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4YWhzanRteWdzYnpsbXRldXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAxMTE5NjgsImV4cCI6MjA0NTY4Nzk2OH0.S5bZ4kRugCGoC2X4t7aV67jqyRjBZRWvguWyy3h9OL0";
+
+    [Table("halflife_user_interactions")]
+    public class UserInteraction : BaseModel
+    {
+        [Column("user_id")]
+        public string UserId { get; set; }
+        [Column("target_audience")]
+        public string TargetAudience { get; set; }
+        [Column("start_time")]
+        public DateTime StartTime { get; set; }
+        [Column("end_time")]
+        public DateTime EndTime { get; set; }
+        [Column("copy_paste_check")]
+        public bool CopyPasteCheck { get; set; }
+        [Column("which_is_better")]
+        public string WhichIsBetter { get; set; }
+
+        // 120 Words - First
+        [Column("text120_first")]
+        public string Text120First { get; set; }
+        [Column("text120_first_jargon")]
+        public string Text120FirstJargon { get; set; }
+        [Column("text120_first_gpt3")]
+        public string Text120FirstGPT3 { get; set; }
+        [Column("text120_first_total_words")]
+        public int Text120FirstTotalWords { get; set; }
+        [Column("text120_first_rare_words")]
+        public int Text120FirstRareWords { get; set; }
+        [Column("text120_first_rare_words_percentage")]
+        public double Text120FirstRareWordsPercentage { get; set; }
+        [Column("text120_first_jargon_score")]
+        public double Text120FirstJargonScore { get; set; }
+
+        // 60 Words
+        [Column("text60")]
+        public string Text60 { get; set; }
+        [Column("text60_jargon")]
+        public string Text60Jargon { get; set; }
+        [Column("text60_gpt3")]
+        public string Text60GPT3 { get; set; }
+        [Column("text60_total_words")]
+        public int Text60TotalWords { get; set; }
+        [Column("text60_rare_words")]
+        public int Text60RareWords { get; set; }
+        [Column("text60_rare_words_percentage")]
+        public double Text60RareWordsPercentage { get; set; }
+        [Column("text60_jargon_score")]
+        public double Text60JargonScore { get; set; }
+
+        // 30 Words
+        [Column("text30")]
+        public string Text30 { get; set; }
+        [Column("text30_jargon")]
+        public string Text30Jargon { get; set; }
+        [Column("text30_gpt3")]
+        public string Text30GPT3 { get; set; }
+        [Column("text30_total_words")]
+        public int Text30TotalWords { get; set; }
+        [Column("text30_rare_words")]
+        public int Text30RareWords { get; set; }
+        [Column("text30_rare_words_percentage")]
+        public double Text30RareWordsPercentage { get; set; }
+        [Column("text30_jargon_score")]
+        public double Text30JargonScore { get; set; }
+
+        // 120 Words - Last
+        [Column("text120_last")]
+        public string Text120Last { get; set; }
+        [Column("text120_last_total_words")]
+        public int Text120LastTotalWords { get; set; }
+        [Column("text120_last_rare_words")]
+        public int Text120LastRareWords { get; set; }
+        [Column("text120_last_rare_words_percentage")]
+        public double Text120LastRareWordsPercentage { get; set; }
+        [Column("text120_last_jargon_score")]
+        public double Text120LastJargonScore { get; set; }
+    }
+
     public class ConversationHistory
     {
         public List<Message> Messages { get; set; }
         public int CurrentStage { get; set; }
+
         public string Text120First { get; set; }
         public string Text120FirstJargon { get; set; }
         public string Text120FirstGPT3 { get; set; }
+        public int Text120FitrstTotalWords { get; set; }
+        public int Text120FitrstRareWords { get; set; }
+        public double Text120FitrstRareWordsPercentage { get; set; }
+        public double Text120FitrstJargonScore { get; set; }
+
+
         public string Text60 { get; set; }
         public string Text60Jargon { get; set; }
         public string Text60GPT3 { get; set; }
+        public int Text60TotalWords { get; set; }
+        public int Text60RareWords { get; set; }
+        public double Text60RareWordsPercentage { get; set; }
+        public double Text60JargonScore { get; set; }
+
+
         public string Text30 { get; set; }
         public string Text30Jargon { get; set; }
         public string Text30GPT3 { get; set; }
+        public int Text30TotalWords { get; set; }
+        public int Text30RareWords { get; set; }
+        public double Text30RareWordsPercentage { get; set; }
+        public double Text30JargonScore { get; set; }
+
+
         public string Text120Last { get; set; }
+        public int Text120LastTotalWords { get; set; }
+        public int Text120LastRareWords { get; set; }
+        public double Text120LastRareWordsPercentage { get; set; }
+        public double Text120LastJargonScore { get; set; }
+
+
         public string WhichIsBetter { get; set; }
         public string TargetAudience { get; set; }
+        public DateTime StartTime { get; set; }         
+        public bool CopyPasteCheck { get; set; }
     }
 
     public class Message
@@ -66,6 +177,9 @@ public class HalfLifeController : ApiController
 
         client = new HttpClient(httpClientHandler);
         client.DefaultRequestHeaders.ConnectionClose = false;
+
+
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
     }
 
 
@@ -74,7 +188,13 @@ public class HalfLifeController : ApiController
     {
         try
         {
-            var responseMessages = await DetermineResponse(history);
+            var authHeader = HttpContext.Current.Request.Headers["Authorization"];
+            var token = authHeader?.Split(' ').Last();
+
+            var principal = TokenValidator.ValidateToken(token);
+            var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var responseMessages = await DetermineResponse(history, userId);
 
             // Update history with the response
             history.Messages.AddRange(responseMessages.Select(m => new Message { Text = m, IsStudent = false }));
@@ -89,7 +209,7 @@ public class HalfLifeController : ApiController
 
 
 
-    private async Task<List<string>> DetermineResponse(ConversationHistory history)
+    private async Task<List<string>> DetermineResponse(ConversationHistory history, string userId)
     {
         var lastUserText = history.Messages.LastOrDefault(x => x.IsStudent);
         
@@ -99,6 +219,7 @@ public class HalfLifeController : ApiController
 
                 if (ValidateUserRespose(lastUserText.Text, new List<string> { "1", "2", "3", "4" }))
                 {
+                    history.StartTime = DateTime.Now;
                     history.CurrentStage++;
 
                     switch (lastUserText.Text)
@@ -160,11 +281,13 @@ public class HalfLifeController : ApiController
 
                     history.CurrentStage++;
 
-                    return new List<string> {
-                        "We are science communication researchers. If you agree, we will save the conversation you had with the bot for a future study (the text, today’s date, and country of origin by IP). If you don’t agree, we won’t save it." +
-                        "<div class='chat-option'>(1) You can save my conversation</div>" +
-                        "<div class='chat-option'>(2) Don’t save my conversation</div>",
-                    };
+                    //await SaveToGoogleSheets(history);
+                    await SaveToSupabase(history, userId);
+
+
+                    Logger.UpdateNumberOfUses(1);
+
+                    return new List<string> { "We’re done! Hope this was helpful. Now is a good time to further hone your skills at the science communication free online course at edX." };
                 }
                 else
                 {
@@ -175,24 +298,6 @@ public class HalfLifeController : ApiController
                         "<div class='chat-option'>(4) Both!</div>"};
                 }
 
-            case 7:
-                if (ValidateUserRespose(lastUserText.Text, new List<string> { "1", "2" }))
-                {
-                    history.CurrentStage++;
-
-                    if (lastUserText.Text == "1")
-                    {
-                        await SaveToGoogleSheets(history);
-                    }
-
-                    return new List<string> { "We’re done! Hope this was helpful. Now is a good time to further hone your skills at the science communication free online course at edX." };
-                }
-                else
-                {
-                    return new List<string> { "Please enter your answer as single digit: " +
-                        "<div class='chat-option'>(1) You can save my conversation</div>" +
-                        "<div class='chat-option'>(2) Don’t save my conversation</div>" };
-                }
             default:
                 history.CurrentStage++;
 
@@ -204,6 +309,68 @@ public class HalfLifeController : ApiController
                     "<div class='chat-option'>(3)High school level science (learned science until they were 18 years old)</div>" +
                     "<div class='chat-option'>(4)Adult audience with mixed background</div>",
                 };
+        }
+    }
+
+    private async Task SaveToSupabase(ConversationHistory history, string userId)
+    {
+        var client = new Supabase.Client(SUPABASE_URL, SUPABASE_KEY);
+        await client.InitializeAsync();
+
+        var isRegisteredUser = userId != null;
+
+        var data = new UserInteraction
+        {
+            UserId = isRegisteredUser ? userId : null,
+            TargetAudience = history.TargetAudience,
+            StartTime = history.StartTime,
+            EndTime = DateTime.Now,
+            CopyPasteCheck = history.CopyPasteCheck,
+            WhichIsBetter = history.WhichIsBetter,
+
+            // 120 Words - First
+            Text120First = isRegisteredUser ? history.Text120First : null,
+            Text120FirstJargon = history.Text120FirstJargon,
+            Text120FirstGPT3 = isRegisteredUser ? history.Text120FirstGPT3 : null,
+            Text120FirstTotalWords = history.Text120FitrstTotalWords,
+            Text120FirstRareWords = history.Text120FitrstRareWords,
+            Text120FirstRareWordsPercentage = history.Text120FitrstRareWordsPercentage,
+            Text120FirstJargonScore = history.Text120FitrstJargonScore,
+
+            // 60 Words
+            Text60 = isRegisteredUser ? history.Text60 : null,
+            Text60Jargon = history.Text60Jargon,
+            Text60GPT3 = isRegisteredUser ? history.Text60GPT3 : null,
+            Text60TotalWords = history.Text60TotalWords,
+            Text60RareWords = history.Text60RareWords,
+            Text60RareWordsPercentage = history.Text60RareWordsPercentage,
+            Text60JargonScore = history.Text60JargonScore,
+
+            // 30 Words
+            Text30 = isRegisteredUser ? history.Text30 : null,
+            Text30Jargon = history.Text30Jargon,
+            Text30GPT3 = isRegisteredUser ? history.Text30GPT3 : null,
+            Text30TotalWords = history.Text30TotalWords,
+            Text30RareWords = history.Text30RareWords,
+            Text30RareWordsPercentage = history.Text30RareWordsPercentage,
+            Text30JargonScore = history.Text30JargonScore,
+
+            // 120 Words - Last
+            Text120Last = isRegisteredUser ? history.Text120Last : null,
+            Text120LastTotalWords = history.Text120LastTotalWords,
+            Text120LastRareWords = history.Text120LastRareWords,
+            Text120LastRareWordsPercentage = history.Text120LastRareWordsPercentage,
+            Text120LastJargonScore = history.Text120LastJargonScore
+        };
+
+        try
+        {
+            await client.From<UserInteraction>().Insert(data);
+            Debug.WriteLine("Data successfully saved to Supabase.");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error saving data to Supabase: {ex.Message}");
         }
     }
 
@@ -258,6 +425,10 @@ public class HalfLifeController : ApiController
                     history.Text120First = text;
                     history.Text120FirstGPT3 = rephrasedText;
                     history.Text120FirstJargon = string.Join(", ", articleGradingInfo.RareWordsSyns.Keys);
+                    history.Text120FitrstJargonScore = articleGradingInfo.Score;
+                    history.Text120FitrstRareWords = articleGradingInfo.RareWords.Count;
+                    history.Text120FitrstTotalWords = articleGradingInfo.Words.Length;
+                    history.Text120FitrstRareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.Words.Length;
                 }
                 else
                 {
@@ -265,6 +436,10 @@ public class HalfLifeController : ApiController
                     var revisedTxt = text;
 
                     history.Text120Last = text;
+                    history.Text120LastJargonScore = articleGradingInfo.Score;
+                    history.Text120LastRareWords = articleGradingInfo.RareWords.Count;
+                    history.Text120LastTotalWords = articleGradingInfo.Words.Length;
+                    history.Text120LastRareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.Words.Length;
 
                     return new List<string> {
                         "Let’s see if this was effective.",
@@ -284,6 +459,10 @@ public class HalfLifeController : ApiController
                 history.Text60 = text;
                 history.Text60GPT3 = rephrasedText;
                 history.Text60Jargon = string.Join(", ", articleGradingInfo.RareWordsSyns.Keys);
+                history.Text60JargonScore = articleGradingInfo.Score;
+                history.Text60RareWords = articleGradingInfo.RareWords.Count;
+                history.Text60TotalWords = articleGradingInfo.Words.Length;
+                history.Text60RareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.Words.Length;
 
                 responses.Add("OK, now let's take it to the next level!<br />Please tell me what you do and why in only 30 words (20-40).");
                 break;
@@ -291,6 +470,10 @@ public class HalfLifeController : ApiController
                 history.Text30 = text;
                 history.Text30GPT3 = rephrasedText;
                 history.Text30Jargon = string.Join(", ", articleGradingInfo.RareWordsSyns.Keys);
+                history.Text30JargonScore = articleGradingInfo.Score;
+                history.Text30RareWords = articleGradingInfo.RareWords.Count;
+                history.Text30TotalWords = articleGradingInfo.Words.Length;
+                history.Text30RareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.Words.Length;
 
                 responses.Add("Finally, after you distilled your message and noticed some jargon words and difficult phrases you might wish to avoid - I give you all of your 120 words back! I bet it seems a lot now.<br />Please tell me what you study and why it is important using 120 words.");
                 break;

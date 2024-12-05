@@ -9,11 +9,11 @@
     <title>De-Jargonizer</title>
     @*Renders and minifes site css*@
     <link rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-    integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-    crossorigin="anonymous">
-        <link href='@(Url.Content("~/Content/Site.css") + "?v=" + Guid.NewGuid().ToString())' rel='stylesheet' type='text/css' />
-        <link href='@(Url.Content("~/Content/Home.css") + "?v=" + Guid.NewGuid().ToString())' rel='stylesheet' type='text/css' />
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+          crossorigin="anonymous">
+    <link href='@(Url.Content("~/Content/Site.css") + "?v=" + Guid.NewGuid().ToString())' rel='stylesheet' type='text/css' />
+    <link href='@(Url.Content("~/Content/Home.css") + "?v=" + Guid.NewGuid().ToString())' rel='stylesheet' type='text/css' />
     <script src="../Scripts/modernizr-2.6.2.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>
@@ -22,8 +22,7 @@
             var indexOfSlash = url.indexOf("/");
             var subURLIndex = url.substr(indexOfSlash).indexOf("?");
 
-            if (subURLIndex != -1)
-            {
+            if (subURLIndex != -1) {
                 var subURL = url.substr(subURLIndex + indexOfSlash + 1);
                 var isFirstSection = $(".infoSection").index($("#" + subURL)) == 0;
                 $(document).scrollTop($("#" + subURL).position().top - (isFirstSection ? 70 : 0));
@@ -39,19 +38,41 @@
         });
 
     </script>
-
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-103589501-1"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'UA-103589501-1');
-    </script>
-
 </head>
 <body>
+
+    <!-- Check if user has accepted cookies -->
+    @if (Request.Cookies["cookie_consent"] != null && Request.Cookies["cookie_consent"].Value == "true")
+    {
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-103589501-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+
+            gtag('config', 'UA-103589501-1');
+        </script>
+    }
+    else
+    {
+        <!-- Show a consent banner or modal if cookies are not accepted -->
+        <div class="cookie-consent-banner-container">
+            <p>We use cookies to improve your experience. By using this site, you agree to our <a href="@Url.Action("Privacy", "Home")">Privacy Policy</a> and <a href="@Url.Action("Terms", "Home")">Terms of Use</a>.</p>
+            <button id="acceptCookies" class="btn btn-primary">Accept Cookies</button>
+        </div>
+
+        <script type="text/javascript">
+            document.getElementById('acceptCookies').addEventListener('click', function () {
+                // Set cookies for consent
+                document.cookie = "cookie_consent=true; path=/; max-age=" + (60 * 60 * 24 * 365); // 1 year
+
+                // Reload the page after setting consent
+                window.location.reload();
+            });
+        </script>
+    }
+
     <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
@@ -109,21 +130,21 @@
             </div>
         </div>
     </div>
-<div class="container body-content">
-    @*all the views are rendered inside this div*@
-    @RenderBody()
-    <hr/>
-    @*layout footer*@
-    <footer>
-        <p>&copy; @DateTime.Now.Year - Jargon Project</p>
-        <p>visits: @Logger.ReadAmountOfUses()</p>
-    </footer>
-</div>
+    <div class="container body-content">
+        @*all the views are rendered inside this div*@
+        @RenderBody()
+        <hr />
+        @*layout footer*@
+        <footer>
+            <p>&copy; @DateTime.Now.Year - Jargon Project</p>
+            <p>visits: @Logger.ReadAmountOfUses()</p>
+        </footer>
+    </div>
     @*renders and minifies scripts with the mvc bundles*@
 
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-    integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
     @RenderSection("scripts", required: false)
 </body>

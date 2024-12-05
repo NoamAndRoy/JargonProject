@@ -58,20 +58,20 @@ li.dropDownElement {
     background-color: #222222;
     min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index:3;
+    z-index: 3;
 }
 
-.dropdownItems a {
-    color: rgb(153, 153, 153);
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-    text-align: left;
-}
+    .dropdownItems a {
+        color: rgb(153, 153, 153);
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        text-align: left;
+    }
 
-.dropdownItems a:hover {
-    color: white;
-}
+        .dropdownItems a:hover {
+            color: white;
+        }
 
 .dropDownElement:hover .dropdownItems {
     display: block;
@@ -121,10 +121,10 @@ li.dropDownElement {
     margin-bottom: 30px;
 }
 
-#statDiv > div > span {
-    padding: 10px;
-    display: inline-block;
-}
+    #statDiv > div > span {
+        padding: 10px;
+        display: inline-block;
+    }
 
 .stat {
     float: right;
@@ -134,3 +134,49 @@ li.dropDownElement {
 .resultSpan {
     width: 50%;
 }
+
+
+
+.cookie-consent-banner-container {
+    background-color: #15325b;
+    padding: 30px;
+    position: relative;
+    top: 0;
+    width: 100%;
+    text-align: center;
+    z-index: 1000;
+    --primary: #ED630B;
+    --primary-light: #E57833;
+}
+
+.cookie-consent-banner-container a {
+    font-weight: 200;
+    color: #fff;
+    text-decoration: inherit;
+}
+
+.cookie-consent-banner-container a:hover {
+    color: var(--primary-light);
+    font-weight: 300;
+}
+
+.cookie-consent-banner-container a:focus,
+.cookie-consent-banner-container a:focus-visible {
+    color: var(--primary);
+    font-weight: 300;
+}
+
+.cookie-consent-banner-container p {
+    display: inline-block;
+    margin-right: 10px;
+    color: white;
+}
+
+    .cookie-consent-banner-container button {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 8px 16px;
+        cursor: pointer;
+    }

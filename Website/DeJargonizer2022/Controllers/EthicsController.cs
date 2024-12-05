@@ -12,6 +12,11 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Web;
 using Newtonsoft.Json.Linq;
+using JargonProject.Handlers;
+using Supabase.Postgrest.Attributes;
+using System.Security.Claims;
+using Supabase.Postgrest.Models;
+using System.Net;
 
 public class EthicsController : ApiController
 {
@@ -23,15 +28,18 @@ public class EthicsController : ApiController
 
     private readonly HttpClient client;
     private readonly string apiUrl = "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
-    private readonly string apiKey = "<openapi-secret>";  // Replace 'openapi-secret' with your actual API key
+    private readonly string apiKey = "openapi-secret";  // Replace 'openapi-secret' with your actual API key
 
     readonly Dictionary<int, (int min, int max)> wordCountRanges = new Dictionary<int, (int min, int max)>
     {
         { 120, (100, 140) },
         { 3, (2, 5) },
-        { 10, (2, 30) },
-        { 20, (50, 70) },
+        { 10, (20, 60) },
+        { 20, (100, 120) },
     };
+
+    private readonly string SUPABASE_URL = "https://jxahsjtmygsbzlmteuxb.supabase.co";
+    private readonly string SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4YWhzanRteWdzYnpsbXRldXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAxMTE5NjgsImV4cCI6MjA0NTY4Nzk2OH0.S5bZ4kRugCGoC2X4t7aV67jqyRjBZRWvguWyy3h9OL0";
 
     public class ConversationHistory
     {
@@ -40,10 +48,43 @@ public class EthicsController : ApiController
         public string OriginalText { get; set; }
         public string MitigateText { get; set; }
         public string FinalText { get; set; }
-        public string WhichIsBetter { get; set; }
         public string WhyIsBetter { get; set; }
         public string AdditionalInformation { get; set; }
+
+        public string WhichIsBetter { get; set; }
         public string TargetAudience { get; set; }
+        public DateTime StartTime { get; set; }
+        public bool CopyPasteCheck { get; set; }
+    }
+
+    [Table("ethics_user_interactions")]
+    public class UserInteraction : BaseModel
+    {
+        [Column("user_id")]
+        public string UserId { get; set; }
+
+        [Column("original_text")]
+        public string OriginalText { get; set; }
+        [Column("mitigate_text")]
+        public string MitigateText { get; set; }
+        [Column("final_text")]
+        public string FinalText { get; set; }
+        [Column("why_is_better")]
+        public string WhyIsBetter { get; set; }
+        [Column("additional_information")]
+        public string AdditionalInformation { get; set; }
+
+
+        [Column("which_is_better")]
+        public string WhichIsBetter { get; set; }
+        [Column("target_audience")]
+        public string TargetAudience { get; set; }
+        [Column("start_time")]
+        public DateTime StartTime { get; set; }
+        [Column("end_time")]
+        public DateTime EndTime { get; set; }
+        [Column("copy_paste_check")]
+        public bool CopyPasteCheck { get; set; }
     }
 
     public class Message
@@ -58,6 +99,8 @@ public class EthicsController : ApiController
         httpClientHandler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12;
         httpClientHandler.ServerCertificateCustomValidationCallback += (sender, cert, chain, sslPolicyErrors) => { return true; };
 
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
         client = new HttpClient(httpClientHandler);
         client.DefaultRequestHeaders.ConnectionClose = false;
     }
@@ -68,7 +111,13 @@ public class EthicsController : ApiController
     {
         try
         {
-            var responseMessages = await DetermineResponse(history);
+            var authHeader = HttpContext.Current.Request.Headers["Authorization"];
+            var token = authHeader?.Split(' ').Last();
+
+            var principal = TokenValidator.ValidateToken(token);
+            var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var responseMessages = await DetermineResponse(history, userId);
 
             // Update history with the response
             history.Messages.AddRange(responseMessages.Select(m => new Message { Text = m, IsStudent = false }));
@@ -83,7 +132,7 @@ public class EthicsController : ApiController
 
 
 
-    private async Task<List<string>> DetermineResponse(ConversationHistory history)
+    private async Task<List<string>> DetermineResponse(ConversationHistory history, string userId)
     {
         var lastUserText = history.Messages.LastOrDefault(x => x.IsStudent);
 
@@ -91,6 +140,7 @@ public class EthicsController : ApiController
         {
             case 1:
                 var response = ValidateWordCount(lastUserText.Text, 20);
+                history.StartTime = DateTime.Now;
 
                 if (!string.IsNullOrEmpty(response))
                 {
@@ -101,7 +151,7 @@ public class EthicsController : ApiController
                 history.OriginalText = lastUserText.Text;
 
                 return new List<string> {
-                    "Take your above description and add 1-2 potential ways to resolve the issue. Your text should be 120 words.",
+                    "Think about your above description and add 1-2 potential ways to resolve the issue. Your text should be about 120 words.",
                 };
 
             case 2:
@@ -118,9 +168,9 @@ public class EthicsController : ApiController
                 var rephrasedText = await RephraseText(lastUserText.Text);
 
                 return new List<string> {
-                    "Here is one suggestion from ChatGPT about how to improve your text:",
+                    "Below there are some suggestions from ChatGPT about potential ethical issues that might arise in your project:",
                     rephrasedText,
-                    "Looking at the above suggestions and your texts, please create a final 120-word version of the research aim, ethical issue and potential solution. New/revised version:",
+                    "Looking at the above suggestions and your texts, please create a final 120-word version of the research aim, ethical issue and potential solution. Type your new, revised version here:",
                 };
 
             case 3:
@@ -135,7 +185,7 @@ public class EthicsController : ApiController
                 history.FinalText = lastUserText.Text;
 
                 return new List<string> {
-                    "Which version is better in your option?" +
+                    "Look back at your original and your final 120-word text. Which version is better in your opinion?" +
                     "<div class='chat-option'>(1) The original 120 word summary </div>" +
                     "<div class='chat-option'>(2) The final 120 word summary </div>" +
                     "<div class='chat-option'>(3) The texts are equal</div>",
@@ -160,7 +210,7 @@ public class EthicsController : ApiController
 
                     return new List<string>
                     {
-                        "Why is the version you chose better? (1-3 sentences)"
+                        "Why is the version you chose better? (20-60 words)"
                     };
                 }
                 else
@@ -199,43 +249,63 @@ public class EthicsController : ApiController
                 history.CurrentStage++;
                 history.AdditionalInformation = lastUserText.Text;
 
+                history.CurrentStage++;
+
+                //await SaveToGoogleSheets(history);
+                await SaveToSupabase(history, userId);
+
+                Logger.UpdateNumberOfUses(1);
+
                 return new List<string> {
-                    "We hope you have learned more on persuasive writing!",
-                    "We are conducting research on academic writing, abd we would appreciate it if you would give us your consent to use your " +
-                    "writing outcomes to assess how people write abd use this tool. We will not share the content of your writing, just evaluate it." +
-                    "<div class='chat-option'>(1) I give my consent </div>" +
-                    "<div class='chat-option'>(2) I do not give my consent</div>",
+                    "We hope you have learned more about writing about ethics!",
+                    "Thank you!!"
                 };
-            case 7:
-                if (ValidateUserRespose(lastUserText.Text, new List<string> { "1", "2" }))
-                {
-                    history.CurrentStage++;
-
-                    if (lastUserText.Text == "1")
-                    {
-                        await SaveToGoogleSheets(history);
-                    }
-
-                    return new List<string> { "Thank you!!" };
-                }
-                else
-                {
-                    return new List<string> {
-                        "Please enter your answer as single digit:" +
-                        "<div class='chat-option'>(1) I give my consent</div>" +
-                        "<div class='chat-option'>(2) I do not give my consent</div>"
-                    };
-                }
 
             default:
                 history.CurrentStage++;
 
                 return new List<string> {
                     "Think about your research project and an ethical issue that may arise when you want to present this work to the public/stakeholders/academics:",
-                    "Briefly describe the research aim and an ethical issue of that project in 2-3 sentences:",
+                    "Briefly describe the research aim and an ethical issue of that project in 100-120 words:",
                 };
         }
     }
+
+
+    private async Task SaveToSupabase(ConversationHistory history, string userId)
+    {
+        var client = new Supabase.Client(SUPABASE_URL, SUPABASE_KEY);
+        await client.InitializeAsync();
+
+        var isRegisteredUser = userId != null;
+
+        var data = new UserInteraction
+        {
+            UserId = isRegisteredUser ? userId : null,
+            TargetAudience = history.TargetAudience,
+            StartTime = history.StartTime,
+            EndTime = DateTime.Now,
+            CopyPasteCheck = history.CopyPasteCheck,
+            WhichIsBetter = history.WhichIsBetter,
+
+            OriginalText = isRegisteredUser ? history.OriginalText : null,
+            MitigateText = isRegisteredUser ? history.MitigateText : null,
+            FinalText = isRegisteredUser ? history.FinalText : null,
+            WhyIsBetter = isRegisteredUser ? history.WhyIsBetter : null,
+            AdditionalInformation = isRegisteredUser ? history.AdditionalInformation : null,
+        };
+
+        try
+        {
+            await client.From<UserInteraction>().Insert(data);
+            Debug.WriteLine("Data successfully saved to Supabase.");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error saving data to Supabase: {ex.Message}");
+        }
+    }
+
 
     private string ValidateWordCount(string text, int wordLimit)
     {

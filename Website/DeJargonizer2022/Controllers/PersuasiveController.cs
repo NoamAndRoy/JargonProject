@@ -14,6 +14,10 @@ using JargonProject.Models;
 using System.Diagnostics;
 using System.Web;
 using Newtonsoft.Json.Linq;
+using Supabase.Postgrest.Attributes;
+using System.Security.Claims;
+using Supabase.Postgrest.Models;
+using System.Net;
 
 public class PersuasiveController : ApiController
 {
@@ -25,19 +29,24 @@ public class PersuasiveController : ApiController
 
     private readonly HttpClient client;
     private readonly string apiUrl = "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
-    private readonly string apiKey = "<openapi-secret>";  // Replace 'openapi-secret' with your actual API key
+    private readonly string apiKey = "openapi-secret";  // Replace 'openapi-secret' with your actual API key
 
     readonly Dictionary<int, (int min, int max)> wordCountRanges = new Dictionary<int, (int min, int max)>
     {
         { 120, (100, 140) },
         { 3, (2, 5) },
+        { 5, (5, 120) },
         { 10, (2, 40) },
     };
 
+    private readonly string SUPABASE_URL = "https://jxahsjtmygsbzlmteuxb.supabase.co";
+    private readonly string SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4YWhzanRteWdzYnpsbXRldXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAxMTE5NjgsImV4cCI6MjA0NTY4Nzk2OH0.S5bZ4kRugCGoC2X4t7aV67jqyRjBZRWvguWyy3h9OL0";
+   
     public class ConversationHistory
     {
         public List<Message> Messages { get; set; }
         public int CurrentStage { get; set; }
+
         public string DetailedAudience { get; set; }
         public string OriginalText { get; set; }
         public string TextLogos { get; set; }
@@ -47,10 +56,57 @@ public class PersuasiveController : ApiController
         public string EthosAffiliation { get; set; }
         public string EthosAffiliationReflected { get; set; }
         public string TextEthos { get; set; }
-        public string WhichIsBetter { get; set; }
         public string WhyIsBetter { get; set; }
+        public string WhatYouHaveLearnt { get; set; }
         public string AdditionalInformation { get; set; }
+
         public string TargetAudience { get; set; }
+        public string WhichIsBetter { get; set; }
+        public DateTime StartTime { get; set; }
+        public bool CopyPasteCheck { get; set; }
+    }
+
+    [Table("persuasive_user_interactions")]
+    public class UserInteraction : BaseModel
+    {
+        [Column("user_id")]
+        public string UserId { get; set; }
+
+        [Column("detailed_audience")]
+        public string DetailedAudience { get; set; }
+        [Column("original_text")]
+        public string OriginalText { get; set; }
+        [Column("text_logos")]
+        public string TextLogos { get; set; }
+        [Column("text_audience_interests")]
+        public string TextAudienceInterests { get; set; }
+        [Column("pathos_interests_reflected")]
+        public string PathosInterestsReflected { get; set; }
+        [Column("text_pathos")]
+        public string TextPathos { get; set; }
+        [Column("ethos_affiliation")]
+        public string EthosAffiliation { get; set; }
+        [Column("ethos_affiliation_reflected")]
+        public string EthosAffiliationReflected { get; set; }
+        [Column("text_ethos")]
+        public string TextEthos { get; set; }
+        [Column("why_is_better")]
+        public string WhyIsBetter { get; set; }
+        [Column("what_you_have_learnt")]
+        public string WhatYouHaveLearnt { get; set; }
+        [Column("additional_information")]
+        public string AdditionalInformation { get; set; }
+
+        [Column("target_audience")]
+        public string TargetAudience { get; set; }
+        [Column("which_is_better")]
+        public string WhichIsBetter { get; set; }
+        [Column("start_time")]
+        public DateTime StartTime { get; set; }
+        [Column("end_time")]
+        public DateTime EndTime { get; set; }
+        [Column("copy_paste_check")]
+        public bool CopyPasteCheck { get; set; }
     }
 
     public class Message
@@ -65,6 +121,8 @@ public class PersuasiveController : ApiController
         httpClientHandler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12;
         httpClientHandler.ServerCertificateCustomValidationCallback += (sender, cert, chain, sslPolicyErrors) => { return true; };
 
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
         client = new HttpClient(httpClientHandler);
         client.DefaultRequestHeaders.ConnectionClose = false;
     }
@@ -75,7 +133,13 @@ public class PersuasiveController : ApiController
     {
         try
         {
-            var responseMessages = await DetermineResponse(history);
+            var authHeader = HttpContext.Current.Request.Headers["Authorization"];
+            var token = authHeader?.Split(' ').Last();
+
+            var principal = TokenValidator.ValidateToken(token);
+            var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var responseMessages = await DetermineResponse(history, userId);
 
             // Update history with the response
             history.Messages.AddRange(responseMessages.Select(m => new Message { Text = m, IsStudent = false }));
@@ -90,7 +154,7 @@ public class PersuasiveController : ApiController
 
 
 
-    private async Task<List<string>> DetermineResponse(ConversationHistory history)
+    private async Task<List<string>> DetermineResponse(ConversationHistory history, string userId)
     {
         var lastUserText = history.Messages.LastOrDefault(x => x.IsStudent);
 
@@ -99,6 +163,7 @@ public class PersuasiveController : ApiController
             case 1:
                 if (ValidateUserRespose(lastUserText.Text, new List<string> { "1", "2", "3", "4" }))
                 {
+                    history.StartTime = DateTime.Now;
                     history.CurrentStage++;
 
                     switch (lastUserText.Text)
@@ -175,13 +240,13 @@ public class PersuasiveController : ApiController
                 }
 
                 var rephrasedText = await RephraseText(lastUserText.Text, "Adult");
-                var gptSuggestion = "This is another version, as suggested by ChatGPT, for your audience.";
+                var gptSuggestion = "This is another version, as suggested by ChatGPT, which may contain additional relevant information and evidence(‘logos’) for your audience.";
 
                 responses.AddRange(new List<string>
                 {
                     gptSuggestion,
                     rephrasedText,
-                    "Please look at the feedback above and create a new, revised version:",
+                    "Please look at your original paragraph and the feedback above. Think about what information you may want to add or change, and create a new, revised version:",
                 });
 
                 return responses;
@@ -242,7 +307,7 @@ public class PersuasiveController : ApiController
                     return new List<string>
                     {
                         rephrasedText2,
-                        "Please look at the feedback above and create a new, revised version."
+                        "Please carefully read what ChatGPT understood as your shared value (pathos) from what you have written. If you now notice that something is missing or inaccurate in your text, please revise your text below. If you are happy with your text, copy it below as it to progress to the last stage."
                     };
                 }
                 else
@@ -310,7 +375,7 @@ public class PersuasiveController : ApiController
                     return new List<string>
                     {
                         rephrasedText2,
-                        "Please look at the feedback above and create a new, revised version."
+                        "Please read ChatGPT’s ideas on how you may improve your ethos according to the suggestion/s you made above. Then, please revise your text one last time to include this as well."
                     };
                 }
                 else
@@ -397,43 +462,81 @@ public class PersuasiveController : ApiController
                 history.AdditionalInformation = lastUserText.Text;
 
                 return new List<string> {
-                    "We hope you have learned more on persuasive writing!",
-                    "We are conducting research on academic writing, and we would appreciate it if you would give us your consent to use your " +
-                    "writing outcomes to assess how people write and use this tool. We will not share the content of your writing, just evaluate it." +
-                    "<div class='chat-option'>(1) I give my consent</div>" +
-                    "<div class='chat-option'>(2) I do not give my consent</div>",
+                    "One last question 😊! Could you list (1-3 sentences) about what you have learned about persuasive writing and how you may implement this tool in the future when you write?",
                 };
             case 14:
-                if (ValidateUserRespose(lastUserText.Text, new List<string> { "1", "2" }))
-                {
-                    history.CurrentStage++;
+                var response9 = ValidateWordCount(lastUserText.Text, 5);
 
-                    if (lastUserText.Text == "1")
-                    {
-                        await SaveToGoogleSheets(history);
-                    }
-
-                    return new List<string> { "Thank you!!" };
-                }
-                else
+                if (!string.IsNullOrEmpty(response9))
                 {
-                    return new List<string> {
-                        "Please enter your answer as single digit:" +
-                        "<div class='chat-option'>(1) I give my consent</div>" +
-                        "<div class='chat-option'>(2) I do not give my consent</div>"
-                    };
+                    return new List<string> { response9 };
                 }
+
+                history.CurrentStage++;
+                history.WhatYouHaveLearnt = lastUserText.Text;
+
+                //await SaveToGoogleSheets(history);
+                await SaveToSupabase(history, userId);
+
+                Logger.UpdateNumberOfUses(1);
+
+                return new List<string> {
+                    "Thank you for using our tool!",
+                    "We hope that you have learned more on persuasive writing from this task – and we hope to see you again soon!"
+                };
+
             default:
                 history.CurrentStage++;
 
                 return new List<string> {
-                    "Before you write a 120-word summary of your research for a specific audience, please answer the following question:",
+                    "The following task will ask you to write a series of 3 paragraphs about your research project. Before you write a 120-word summary of your research for a specific audience, pleaseanswer the following question:",
                     "Who will be reading this work?" +
                     "<div class='chat-option'>(1) an academic audience</div>" +
                     "<div class='chat-option'>(2) a general audience</div>" +
                     "<div class='chat-option'>(3) investors / grant money</div>" +
                     "<div class='chat-option'>(4) government committees</div>",
                 };
+        }
+    }
+
+    private async Task SaveToSupabase(ConversationHistory history, string userId)
+    {
+        var client = new Supabase.Client(SUPABASE_URL, SUPABASE_KEY);
+        await client.InitializeAsync();
+
+        var isRegisteredUser = userId != null;
+
+        var data = new UserInteraction
+        {
+            UserId = isRegisteredUser ? userId : null,
+            TargetAudience = history.TargetAudience,
+            StartTime = history.StartTime,
+            EndTime = DateTime.Now,
+            CopyPasteCheck = history.CopyPasteCheck,
+            WhichIsBetter = history.WhichIsBetter,
+
+            DetailedAudience = isRegisteredUser ? history.DetailedAudience : null,
+            OriginalText = isRegisteredUser ? history.OriginalText : null,
+            TextLogos = isRegisteredUser ? history.TextLogos : null,
+            TextAudienceInterests = isRegisteredUser ? history.TextAudienceInterests : null,
+            PathosInterestsReflected = isRegisteredUser ? history.PathosInterestsReflected : null,
+            TextPathos = isRegisteredUser ? history.TextPathos : null,
+            EthosAffiliation = isRegisteredUser ? history.EthosAffiliation : null,
+            EthosAffiliationReflected = isRegisteredUser ? history.EthosAffiliationReflected : null,
+            TextEthos = isRegisteredUser ? history.TextEthos : null,
+            WhyIsBetter = isRegisteredUser ? history.WhyIsBetter : null,
+            WhatYouHaveLearnt = isRegisteredUser ? history.WhatYouHaveLearnt : null,
+            AdditionalInformation = isRegisteredUser ? history.AdditionalInformation : null,
+        };
+
+        try
+        {
+            await client.From<UserInteraction>().Insert(data);
+            Debug.WriteLine("Data successfully saved to Supabase.");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error saving data to Supabase: {ex.Message}");
         }
     }
 
@@ -484,7 +587,7 @@ public class PersuasiveController : ApiController
 
             var objectList = new List<object>() { DateTime.Now.Date.ToShortDateString(), DateTime.Now.TimeOfDay, ip, geoInfo.Country, geoInfo.Region, geoInfo.City,
                     history.DetailedAudience, history.OriginalText, history.TextLogos, history.TextAudienceInterests, history.PathosInterestsReflected, history.TextPathos,
-                history.EthosAffiliation, history.EthosAffiliationReflected, history.TextEthos, history.WhichIsBetter, history.WhyIsBetter, history.AdditionalInformation, history.TargetAudience,  };
+                history.EthosAffiliation, history.EthosAffiliationReflected, history.TextEthos, history.WhichIsBetter, history.WhyIsBetter, history.WhatYouHaveLearnt, history.AdditionalInformation, history.TargetAudience,  };
 
             valueRange.Values = new List<IList<object>> { objectList };
 

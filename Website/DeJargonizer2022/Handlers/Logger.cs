@@ -63,8 +63,8 @@ namespace JargonProject.Handlers
         {
             lock (s_Lock)
             {
-
-                string fileLocation = HttpContext.Current.Server.MapPath(@"~\Logs\AmountOfUses.txt");
+                //string fileLocation = HttpContext.Current.Server.MapPath(@"~\Logs\AmountOfUses.txt");
+                string fileLocation = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Logs\AmountOfUses.txt");
 
                 ulong numberOfUses = !File.Exists(fileLocation) ? 0 : ulong.Parse(File.ReadAllText(fileLocation).Replace(",", ""));
 
@@ -79,7 +79,8 @@ namespace JargonProject.Handlers
 
         public static ulong ReadAmountOfUses()
         {
-            string fileLocation = HttpContext.Current.Server.MapPath(@"~\Logs\AmountOfUses.txt");
+            //string fileLocation = HttpContext.Current.Server.MapPath(@"~\Logs\AmountOfUses.txt");
+            string fileLocation = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Logs\AmountOfUses.txt");
             ulong numberOfUses = 0;
 
             if(File.Exists(fileLocation))

@@ -27,6 +27,7 @@ public class EthicsController : ApiController
     private static readonly string sheet = "results";
 
     private readonly HttpClient client;
+    private readonly SupabaseClient supabaseClient;
     private readonly string apiUrl = "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
     private readonly string apiKey = "openapi-secret";  // Replace 'openapi-secret' with your actual API key
 
@@ -38,9 +39,6 @@ public class EthicsController : ApiController
         { 20, (100, 120) },
     };
 
-    private readonly string SUPABASE_URL = "https://jxahsjtmygsbzlmteuxb.supabase.co";
-    private readonly string SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4YWhzanRteWdzYnpsbXRldXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAxMTE5NjgsImV4cCI6MjA0NTY4Nzk2OH0.S5bZ4kRugCGoC2X4t7aV67jqyRjBZRWvguWyy3h9OL0";
-
     public class ConversationHistory
     {
         public List<Message> Messages { get; set; }
@@ -50,9 +48,9 @@ public class EthicsController : ApiController
         public string FinalText { get; set; }
         public string WhyIsBetter { get; set; }
         public string AdditionalInformation { get; set; }
+        public string MitigateTextGpt3 { get; set; }
 
         public string WhichIsBetter { get; set; }
-        public string TargetAudience { get; set; }
         public DateTime StartTime { get; set; }
         public bool CopyPasteCheck { get; set; }
     }
@@ -74,11 +72,11 @@ public class EthicsController : ApiController
         [Column("additional_information")]
         public string AdditionalInformation { get; set; }
 
+        [Column("mitigate_text_gpt3")]
+        public string MitigateTextGpt3 { get; set; }
 
         [Column("which_is_better")]
         public string WhichIsBetter { get; set; }
-        [Column("target_audience")]
-        public string TargetAudience { get; set; }
         [Column("start_time")]
         public DateTime StartTime { get; set; }
         [Column("end_time")]
@@ -103,6 +101,8 @@ public class EthicsController : ApiController
 
         client = new HttpClient(httpClientHandler);
         client.DefaultRequestHeaders.ConnectionClose = false;
+
+        supabaseClient = (SupabaseClient)GlobalConfiguration.Configuration.Properties["SupabaseClient"];
     }
 
 
@@ -112,11 +112,7 @@ public class EthicsController : ApiController
         try
         {
             var authHeader = HttpContext.Current.Request.Headers["Authorization"];
-            var token = authHeader?.Split(' ').Last();
-
-            var principal = TokenValidator.ValidateToken(token);
-            var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
+            var userId = supabaseClient.GetUserId(authHeader);
             var responseMessages = await DetermineResponse(history, userId);
 
             // Update history with the response
@@ -166,6 +162,7 @@ public class EthicsController : ApiController
                 history.MitigateText = lastUserText.Text;
 
                 var rephrasedText = await RephraseText(lastUserText.Text);
+                history.MitigateTextGpt3 = rephrasedText;
 
                 return new List<string> {
                     "Below there are some suggestions from ChatGPT about potential ethical issues that might arise in your project:",
@@ -274,30 +271,27 @@ public class EthicsController : ApiController
 
     private async Task SaveToSupabase(ConversationHistory history, string userId)
     {
-        var client = new Supabase.Client(SUPABASE_URL, SUPABASE_KEY);
-        await client.InitializeAsync();
-
-        var isRegisteredUser = userId != null;
+        var isSaveUserData = await supabaseClient.getIsSaveUserData(userId);
 
         var data = new UserInteraction
         {
-            UserId = isRegisteredUser ? userId : null,
-            TargetAudience = history.TargetAudience,
+            UserId = isSaveUserData ? userId : null,
             StartTime = history.StartTime,
             EndTime = DateTime.Now,
             CopyPasteCheck = history.CopyPasteCheck,
             WhichIsBetter = history.WhichIsBetter,
 
-            OriginalText = isRegisteredUser ? history.OriginalText : null,
-            MitigateText = isRegisteredUser ? history.MitigateText : null,
-            FinalText = isRegisteredUser ? history.FinalText : null,
-            WhyIsBetter = isRegisteredUser ? history.WhyIsBetter : null,
-            AdditionalInformation = isRegisteredUser ? history.AdditionalInformation : null,
+            MitigateTextGpt3 = isSaveUserData ? history.MitigateTextGpt3 : null,
+            OriginalText = isSaveUserData ? history.OriginalText : null,
+            MitigateText = isSaveUserData ? history.MitigateText : null,
+            FinalText = isSaveUserData ? history.FinalText : null,
+            WhyIsBetter = isSaveUserData ? history.WhyIsBetter : null,
+            AdditionalInformation = isSaveUserData ? history.AdditionalInformation : null,
         };
 
         try
         {
-            await client.From<UserInteraction>().Insert(data);
+            await supabaseClient.client.From<UserInteraction>().Insert(data);
             Debug.WriteLine("Data successfully saved to Supabase.");
         }
         catch (Exception ex)
@@ -341,7 +335,7 @@ public class EthicsController : ApiController
             var geoInfo = await GetGeoInfoFromIp(ip);
 
             var objectList = new List<object>() { DateTime.Now.Date.ToShortDateString(), DateTime.Now.TimeOfDay, ip, geoInfo.Country, geoInfo.Region, geoInfo.City,
-                    history.OriginalText, history.MitigateText, history.FinalText, history.WhichIsBetter, history.WhyIsBetter, history.AdditionalInformation, history.TargetAudience,  };
+                    history.OriginalText, history.MitigateText, history.FinalText, history.WhichIsBetter, history.WhyIsBetter, history.AdditionalInformation, history.MitigateTextGpt3,  };
 
             valueRange.Values = new List<IList<object>> { objectList };
 

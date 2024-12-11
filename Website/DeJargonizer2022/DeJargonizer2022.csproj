@@ -368,6 +368,7 @@
     <Compile Include="Handlers\Logger.cs" />
     <Compile Include="Handlers\TextGrading.cs" />
     <Compile Include="Helpers\AllowCrossSiteJsonAttribute.cs" />
+    <Compile Include="Helpers\SupabaseClient.cs" />
     <Compile Include="Helpers\TokenValidator.cs" />
     <Compile Include="Helpers\SecureRequestExtentionMethods.cs" />
     <Compile Include="Models\ArticleGradingInfo.cs" />

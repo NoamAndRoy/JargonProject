@@ -1,23 +1,22 @@
-﻿using System.Web.Http;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Sheets.v4;
-using Google.Apis.Services;
-using Google.Apis.Sheets.v4.Data;
+﻿using System;
 using System.Collections.Generic;
-using System;
+using System.Diagnostics;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web;
+using System.Web.Http;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
 using JargonProject.Handlers;
 using JargonProject.Models;
-using System.Diagnostics;
-using System.Web;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Supabase.Postgrest.Attributes;
-using System.Security.Claims;
 using Supabase.Postgrest.Models;
-using System.Net;
 
 public class PersuasiveController : ApiController
 {
@@ -28,6 +27,7 @@ public class PersuasiveController : ApiController
     private static readonly string sheet = "results";
 
     private readonly HttpClient client;
+    private readonly SupabaseClient supabaseClient;
     private readonly string apiUrl = "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
     private readonly string apiKey = "openapi-secret";  // Replace 'openapi-secret' with your actual API key
 
@@ -39,9 +39,6 @@ public class PersuasiveController : ApiController
         { 10, (2, 40) },
     };
 
-    private readonly string SUPABASE_URL = "https://jxahsjtmygsbzlmteuxb.supabase.co";
-    private readonly string SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4YWhzanRteWdzYnpsbXRldXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAxMTE5NjgsImV4cCI6MjA0NTY4Nzk2OH0.S5bZ4kRugCGoC2X4t7aV67jqyRjBZRWvguWyy3h9OL0";
-   
     public class ConversationHistory
     {
         public List<Message> Messages { get; set; }
@@ -59,6 +56,11 @@ public class PersuasiveController : ApiController
         public string WhyIsBetter { get; set; }
         public string WhatYouHaveLearnt { get; set; }
         public string AdditionalInformation { get; set; }
+
+        public string OriginalTextJargon { get; set; }
+        public string TextLogosGpt3 { get; set; }
+        public string TextPathosGpt3 { get; set; }
+        public string TextEthosGpt3 { get; set; }
 
         public string TargetAudience { get; set; }
         public string WhichIsBetter { get; set; }
@@ -94,6 +96,14 @@ public class PersuasiveController : ApiController
         public string WhyIsBetter { get; set; }
         [Column("what_you_have_learnt")]
         public string WhatYouHaveLearnt { get; set; }
+        [Column("original_text_jargon")]
+        public string OriginalTextJargon { get; set; }
+        [Column("text_logos_gpt3")]
+        public string TextLogosGpt3 { get; set; }
+        [Column("text_pathos_gpt3")]
+        public string TextPathosGpt3 { get; set; }
+        [Column("text_ethos_gpt3")]
+        public string TextEthosGpt3 { get; set; }
         [Column("additional_information")]
         public string AdditionalInformation { get; set; }
 
@@ -125,6 +135,8 @@ public class PersuasiveController : ApiController
 
         client = new HttpClient(httpClientHandler);
         client.DefaultRequestHeaders.ConnectionClose = false;
+
+        supabaseClient = (SupabaseClient)GlobalConfiguration.Configuration.Properties["SupabaseClient"];
     }
 
 
@@ -134,11 +146,7 @@ public class PersuasiveController : ApiController
         try
         {
             var authHeader = HttpContext.Current.Request.Headers["Authorization"];
-            var token = authHeader?.Split(' ').Last();
-
-            var principal = TokenValidator.ValidateToken(token);
-            var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
+            var userId = supabaseClient.GetUserId(authHeader);
             var responseMessages = await DetermineResponse(history, userId);
 
             // Update history with the response
@@ -237,10 +245,14 @@ public class PersuasiveController : ApiController
                                         $" audience you have chosen, and if there are any key terms that you have left out.";
 
                     responses.Add(jargonFeedback);
+
+                    history.OriginalTextJargon = string.Join(", ", articleGradingInfo.RareWordsSyns.Keys);
                 }
 
                 var rephrasedText = await RephraseText(lastUserText.Text, "Adult");
                 var gptSuggestion = "This is another version, as suggested by ChatGPT, which may contain additional relevant information and evidence(‘logos’) for your audience.";
+
+                history.TextLogosGpt3 = rephrasedText;
 
                 responses.AddRange(new List<string>
                 {
@@ -303,6 +315,7 @@ public class PersuasiveController : ApiController
 
 
                     var rephrasedText2 = await RephraseText(history.TextLogos, "Pathos", history.TextAudienceInterests);
+                    history.TextPathosGpt3 = rephrasedText2;
 
                     return new List<string>
                     {
@@ -371,6 +384,7 @@ public class PersuasiveController : ApiController
 
 
                     var rephrasedText2 = await RephraseText(history.TextPathos, "Ethos", history.EthosAffiliation);
+                    history.TextEthosGpt3 = rephrasedText2;
 
                     return new List<string>
                     {
@@ -489,7 +503,7 @@ public class PersuasiveController : ApiController
                 history.CurrentStage++;
 
                 return new List<string> {
-                    "The following task will ask you to write a series of 3 paragraphs about your research project. Before you write a 120-word summary of your research for a specific audience, pleaseanswer the following question:",
+                    "The following task will ask you to write a series of 3 paragraphs about your research project. Before you write a 120-word summary of your research for a specific audience, please answer the following question:",
                     "Who will be reading this work?" +
                     "<div class='chat-option'>(1) an academic audience</div>" +
                     "<div class='chat-option'>(2) a general audience</div>" +
@@ -501,37 +515,38 @@ public class PersuasiveController : ApiController
 
     private async Task SaveToSupabase(ConversationHistory history, string userId)
     {
-        var client = new Supabase.Client(SUPABASE_URL, SUPABASE_KEY);
-        await client.InitializeAsync();
-
-        var isRegisteredUser = userId != null;
+        var isSaveUserData = await supabaseClient.getIsSaveUserData(userId);
 
         var data = new UserInteraction
         {
-            UserId = isRegisteredUser ? userId : null,
+            UserId = isSaveUserData ? userId : null,
             TargetAudience = history.TargetAudience,
             StartTime = history.StartTime,
             EndTime = DateTime.Now,
             CopyPasteCheck = history.CopyPasteCheck,
             WhichIsBetter = history.WhichIsBetter,
 
-            DetailedAudience = isRegisteredUser ? history.DetailedAudience : null,
-            OriginalText = isRegisteredUser ? history.OriginalText : null,
-            TextLogos = isRegisteredUser ? history.TextLogos : null,
-            TextAudienceInterests = isRegisteredUser ? history.TextAudienceInterests : null,
-            PathosInterestsReflected = isRegisteredUser ? history.PathosInterestsReflected : null,
-            TextPathos = isRegisteredUser ? history.TextPathos : null,
-            EthosAffiliation = isRegisteredUser ? history.EthosAffiliation : null,
-            EthosAffiliationReflected = isRegisteredUser ? history.EthosAffiliationReflected : null,
-            TextEthos = isRegisteredUser ? history.TextEthos : null,
-            WhyIsBetter = isRegisteredUser ? history.WhyIsBetter : null,
-            WhatYouHaveLearnt = isRegisteredUser ? history.WhatYouHaveLearnt : null,
-            AdditionalInformation = isRegisteredUser ? history.AdditionalInformation : null,
+            DetailedAudience = isSaveUserData ? history.DetailedAudience : null,
+            OriginalText = isSaveUserData ? history.OriginalText : null,
+            TextLogos = isSaveUserData ? history.TextLogos : null,
+            TextAudienceInterests = isSaveUserData ? history.TextAudienceInterests : null,
+            PathosInterestsReflected = isSaveUserData ? history.PathosInterestsReflected : null,
+            TextPathos = isSaveUserData ? history.TextPathos : null,
+            EthosAffiliation = isSaveUserData ? history.EthosAffiliation : null,
+            EthosAffiliationReflected = isSaveUserData ? history.EthosAffiliationReflected : null,
+            TextEthos = isSaveUserData ? history.TextEthos : null,
+            WhyIsBetter = isSaveUserData ? history.WhyIsBetter : null,
+            WhatYouHaveLearnt = isSaveUserData ? history.WhatYouHaveLearnt : null,
+            AdditionalInformation = isSaveUserData ? history.AdditionalInformation : null,
+            OriginalTextJargon = isSaveUserData ? history.OriginalTextJargon: null,
+            TextLogosGpt3 = isSaveUserData ? history.TextLogosGpt3: null,
+            TextPathosGpt3 = isSaveUserData ? history.TextPathosGpt3: null,
+            TextEthosGpt3 = isSaveUserData ? history.TextEthosGpt3 : null,
         };
 
         try
         {
-            await client.From<UserInteraction>().Insert(data);
+            await supabaseClient.client.From<UserInteraction>().Insert(data);
             Debug.WriteLine("Data successfully saved to Supabase.");
         }
         catch (Exception ex)

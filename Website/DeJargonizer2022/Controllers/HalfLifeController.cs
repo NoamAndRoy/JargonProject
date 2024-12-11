@@ -1,23 +1,22 @@
-﻿using System.Web.Http;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Sheets.v4;
-using Google.Apis.Services;
-using Google.Apis.Sheets.v4.Data;
+﻿using System;
 using System.Collections.Generic;
-using System;
+using System.Diagnostics;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web;
+using System.Web.Http;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
 using JargonProject.Handlers;
 using JargonProject.Models;
-using System.Diagnostics;
-using System.Web;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Security.Claims;
-using Supabase.Postgrest.Models;
-using System.Net; 
 using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 
 public class HalfLifeController : ApiController
 {
@@ -28,6 +27,7 @@ public class HalfLifeController : ApiController
     private static readonly string sheet = "results";
 
     private readonly HttpClient client;
+    private readonly SupabaseClient supabaseClient;
     private readonly string apiUrl = "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
     private readonly string apiKey = "openapi-secret";  // Replace 'openapi-secret' with your actual API key
 
@@ -37,9 +37,6 @@ public class HalfLifeController : ApiController
         { 60, (45, 75) },
         { 30, (20, 40) }
     };
-
-    private readonly string SUPABASE_URL = "https://jxahsjtmygsbzlmteuxb.supabase.co";
-    private readonly string SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4YWhzanRteWdzYnpsbXRldXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAxMTE5NjgsImV4cCI6MjA0NTY4Nzk2OH0.S5bZ4kRugCGoC2X4t7aV67jqyRjBZRWvguWyy3h9OL0";
 
     [Table("halflife_user_interactions")]
     public class UserInteraction : BaseModel
@@ -159,7 +156,7 @@ public class HalfLifeController : ApiController
 
         public string WhichIsBetter { get; set; }
         public string TargetAudience { get; set; }
-        public DateTime StartTime { get; set; }         
+        public DateTime StartTime { get; set; }
         public bool CopyPasteCheck { get; set; }
     }
 
@@ -178,9 +175,11 @@ public class HalfLifeController : ApiController
         client = new HttpClient(httpClientHandler);
         client.DefaultRequestHeaders.ConnectionClose = false;
 
-
         ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+        supabaseClient = (SupabaseClient)GlobalConfiguration.Configuration.Properties["SupabaseClient"];
     }
+
 
 
     [HttpPost]
@@ -189,11 +188,7 @@ public class HalfLifeController : ApiController
         try
         {
             var authHeader = HttpContext.Current.Request.Headers["Authorization"];
-            var token = authHeader?.Split(' ').Last();
-
-            var principal = TokenValidator.ValidateToken(token);
-            var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
+            var userId = supabaseClient.GetUserId(authHeader);
             var responseMessages = await DetermineResponse(history, userId);
 
             // Update history with the response
@@ -207,12 +202,10 @@ public class HalfLifeController : ApiController
         }
     }
 
-
-
     private async Task<List<string>> DetermineResponse(ConversationHistory history, string userId)
     {
         var lastUserText = history.Messages.LastOrDefault(x => x.IsStudent);
-        
+
         switch (history.CurrentStage)
         {
             case 1:
@@ -314,14 +307,11 @@ public class HalfLifeController : ApiController
 
     private async Task SaveToSupabase(ConversationHistory history, string userId)
     {
-        var client = new Supabase.Client(SUPABASE_URL, SUPABASE_KEY);
-        await client.InitializeAsync();
-
-        var isRegisteredUser = userId != null;
+        var isSaveUserData = await supabaseClient.getIsSaveUserData(userId);
 
         var data = new UserInteraction
         {
-            UserId = isRegisteredUser ? userId : null,
+            UserId = isSaveUserData ? userId : null,
             TargetAudience = history.TargetAudience,
             StartTime = history.StartTime,
             EndTime = DateTime.Now,
@@ -329,34 +319,34 @@ public class HalfLifeController : ApiController
             WhichIsBetter = history.WhichIsBetter,
 
             // 120 Words - First
-            Text120First = isRegisteredUser ? history.Text120First : null,
+            Text120First = isSaveUserData ? history.Text120First : null,
             Text120FirstJargon = history.Text120FirstJargon,
-            Text120FirstGPT3 = isRegisteredUser ? history.Text120FirstGPT3 : null,
+            Text120FirstGPT3 = isSaveUserData ? history.Text120FirstGPT3 : null,
             Text120FirstTotalWords = history.Text120FitrstTotalWords,
             Text120FirstRareWords = history.Text120FitrstRareWords,
             Text120FirstRareWordsPercentage = history.Text120FitrstRareWordsPercentage,
             Text120FirstJargonScore = history.Text120FitrstJargonScore,
 
             // 60 Words
-            Text60 = isRegisteredUser ? history.Text60 : null,
+            Text60 = isSaveUserData ? history.Text60 : null,
             Text60Jargon = history.Text60Jargon,
-            Text60GPT3 = isRegisteredUser ? history.Text60GPT3 : null,
+            Text60GPT3 = isSaveUserData ? history.Text60GPT3 : null,
             Text60TotalWords = history.Text60TotalWords,
             Text60RareWords = history.Text60RareWords,
             Text60RareWordsPercentage = history.Text60RareWordsPercentage,
             Text60JargonScore = history.Text60JargonScore,
 
             // 30 Words
-            Text30 = isRegisteredUser ? history.Text30 : null,
+            Text30 = isSaveUserData ? history.Text30 : null,
             Text30Jargon = history.Text30Jargon,
-            Text30GPT3 = isRegisteredUser ? history.Text30GPT3 : null,
+            Text30GPT3 = isSaveUserData ? history.Text30GPT3 : null,
             Text30TotalWords = history.Text30TotalWords,
             Text30RareWords = history.Text30RareWords,
             Text30RareWordsPercentage = history.Text30RareWordsPercentage,
             Text30JargonScore = history.Text30JargonScore,
 
             // 120 Words - Last
-            Text120Last = isRegisteredUser ? history.Text120Last : null,
+            Text120Last = isSaveUserData ? history.Text120Last : null,
             Text120LastTotalWords = history.Text120LastTotalWords,
             Text120LastRareWords = history.Text120LastRareWords,
             Text120LastRareWordsPercentage = history.Text120LastRareWordsPercentage,
@@ -365,7 +355,7 @@ public class HalfLifeController : ApiController
 
         try
         {
-            await client.From<UserInteraction>().Insert(data);
+            await supabaseClient.client.From<UserInteraction>().Insert(data);
             Debug.WriteLine("Data successfully saved to Supabase.");
         }
         catch (Exception ex)
@@ -526,7 +516,7 @@ public class HalfLifeController : ApiController
 
             string ip = GetIp();
             var geoInfo = await GetGeoInfoFromIp(ip);
- 
+
             var objectList = new List<object>() { DateTime.Now.Date.ToShortDateString(), DateTime.Now.TimeOfDay, ip, geoInfo.Country, geoInfo.Region, geoInfo.City, history.Text120First, history.Text120FirstJargon, history.Text120FirstGPT3, history.Text60, history.Text60Jargon, history.Text60GPT3, history.Text30, history.Text30Jargon, history.Text30GPT3, history.Text120Last, history.WhichIsBetter, history.TargetAudience };
             valueRange.Values = new List<IList<object>> { objectList };
 
@@ -545,7 +535,7 @@ public class HalfLifeController : ApiController
         string ip = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
         string ip2 = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
         string ip3 = HttpContext.Current.Request.UserHostAddress;
-        
+
         //Debug.WriteLine($"ip:{ip}, ip2:{ip2}, ip3:{ip3}");
 
         if (string.IsNullOrEmpty(ip))

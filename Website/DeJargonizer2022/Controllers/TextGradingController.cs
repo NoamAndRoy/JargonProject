@@ -1,28 +1,74 @@
-﻿using DeJargonizer2022.Helpers;
-using JargonProject.Handlers;
-using JargonProject.Helpers;
-using JargonProject.Models;
-using System;
+﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using JargonProject.Handlers;
+using JargonProject.Helpers;
+using JargonProject.Models;
+using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 using Xceed.Document.NET;
 using Xceed.Words.NET;
 using Font = System.Drawing.Font;
 
 namespace JargonProject.Controllers
 {
-	public class TextGradingController : Controller
+    public class TextGradingController : Controller
 	{
 		static Microsoft.Office.Interop.Word.Application winword;
+        private readonly SupabaseClient supabaseClient = (SupabaseClient)System.Web.Http.GlobalConfiguration.Configuration.Properties["SupabaseClient"];
 
-		// GET: TextGrading
-		public ActionResult Index()
+
+        [Table("dejargonizer_user_interactions")]
+        public class UserInteraction : BaseModel
+        {
+            [Column("user_id")]
+            public string UserId { get; set; }
+            [Column("time")]
+            public DateTime Time { get; set; }
+
+            [Column("dictionary")]
+            public string Dictionary { get; set; }
+            [Column("text")]
+            public string Text { get; set; }
+            [Column("result_text")]
+            public string ResultText { get; set; }
+            [Column("jargon")]
+            public string Jargon { get; set; }
+            [Column("total_words")]
+            public int TotalWords { get; set; }
+            [Column("rare_words")]
+            public int RareWords { get; set; }
+            [Column("rare_words_percentage")]
+            public double RareWordsPercentage { get; set; }
+            [Column("mid_range_words")]
+            public int MidRangeWords { get; set; }
+            [Column("mid_range_words_percentage")]
+            public double MidRangeWordsPercentage { get; set; }
+            [Column("jargon_score")]
+            public double JargonScore { get; set; }
+        }
+
+        // GET: TextGrading
+        public ActionResult Index()
 		{
-			return View();
+			var termsConsent = Request.Cookies["terms_consent"];
+            var token = Request.Cookies["authToken"]?.Value;
+            var userId = supabaseClient.GetUserId(token);
+
+            if (userId == null && (termsConsent == null || string.IsNullOrEmpty(termsConsent.Value) && termsConsent.Value == "false"))
+            {
+				return Redirect("/");
+            }
+
+            return View();
 		}
 
 
@@ -44,13 +90,15 @@ namespace JargonProject.Controllers
 		}
 
 		[HttpPost]
-		public ActionResult Index(string ContentTA, HttpPostedFileBase ArticleFU, string timePriodDDL)
+		public async Task<ActionResult> Index(string ContentTA, HttpPostedFileBase ArticleFU, string timePriodDDL)
 		{
 			ArticleGradingInfo articleGradingInfo = null;
 			bool fileCantBeGraded = false;
 			string text = null;
 
-			// ReSharper disable once InlineOutVariableDeclaration -- Build failed with inline
+            var token = Request.Cookies["authToken"].Value;
+            var userId = supabaseClient.GetUserId(token);
+            
 			Language timePeriodLanguage;
 			Enum.TryParse(timePriodDDL, out timePeriodLanguage);
 			TextGrading.Lang = timePeriodLanguage;
@@ -67,8 +115,10 @@ namespace JargonProject.Controllers
 						articleGradingInfo.Name = ArticleFU.FileName.Substring(0, ArticleFU.FileName.LastIndexOf('.'));
 
 						Logger.UpdateNumberOfUses(1);
-					}
-					catch
+                        await SaveToSupabase(articleGradingInfo, userId);
+
+                    }
+                    catch
 					{
 						fileCantBeGraded = true;
 					}
@@ -83,10 +133,11 @@ namespace JargonProject.Controllers
 				articleGradingInfo = TextGrading.AnalyzeSingleText(ContentTA);
 
 				Logger.UpdateNumberOfUses(1);
-			}
+                await SaveToSupabase(articleGradingInfo, userId);
+            }
 
 
-			if (fileCantBeGraded)
+            if (fileCantBeGraded)
             {
 				articleGradingInfo = new ArticleGradingInfo();
 				articleGradingInfo.Error = "File can not be graded.";
@@ -97,7 +148,61 @@ namespace JargonProject.Controllers
 			return View(articleGradingInfo);
 		}
 
-		[HttpPost]
+        private async Task SaveToSupabase(ArticleGradingInfo articleGradingInfo, string userId)
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            var isSaveUserData = await supabaseClient.getIsSaveUserData(userId);
+
+            var text = new StringBuilder();
+
+            foreach (string word in articleGradingInfo.Words)
+            {
+                string cleanedWord = TextGrading.CleanWord(word).ToLower();
+                string type = "commonWord";
+
+                if (articleGradingInfo.RareWords.Contains(cleanedWord))
+                {
+                    type = "rareWord";
+                }
+                else if (articleGradingInfo.NormalWords.Contains(cleanedWord))
+                {
+                    type = "normalWord";
+                }
+
+                text.AppendFormat("<span class='{0}'>{1}</span>", type, word == "\r\n" ? "<br />" : word);
+            }
+
+            var result = text.ToString();
+
+            var data = new UserInteraction
+            {
+                UserId = isSaveUserData ? userId : null,
+                Time = DateTime.Now,
+				
+				Dictionary = TextGrading.Lang.ToString(),
+				Text = isSaveUserData ? articleGradingInfo.Content : null,
+                ResultText = isSaveUserData ? result : null,
+				Jargon = string.Join(", ", articleGradingInfo.RareWordsSyns.Keys),
+                TotalWords = articleGradingInfo.CleanedWords.Count,
+				RareWords = articleGradingInfo.RareWords.Count,
+				RareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.CleanedWords.Count,
+				MidRangeWords = articleGradingInfo.NormalWords.Count,
+				MidRangeWordsPercentage = articleGradingInfo.NormalWords.Count / (double)articleGradingInfo.CleanedWords.Count,
+				JargonScore = articleGradingInfo.Score,
+            };
+
+            try
+            {
+                await supabaseClient.client.From<UserInteraction>().Insert(data);
+                Debug.WriteLine("Data successfully saved to Supabase.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error saving data to Supabase: {ex.Message}");
+            }
+        }
+
+        [HttpPost]
 		public ActionResult Download()
 		{
 			try

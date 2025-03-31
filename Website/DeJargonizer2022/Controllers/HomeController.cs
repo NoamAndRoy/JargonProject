@@ -67,11 +67,6 @@ namespace JargonProject.Controllers
 
         public ActionResult ServeApp()
         {
-
-
-
-
-
             var path = Server.MapPath("~/Content/dist/index.html");
             return File(path, "text/html");
         }

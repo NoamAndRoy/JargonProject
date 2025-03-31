@@ -20,7 +20,7 @@ namespace JargonProject.Controllers
         [HttpPost]
         public ActionResult Index(IEnumerable<HttpPostedFileBase> ArticlesGroupFU)
         {
-	        TextGrading.Lang = Language.English2020_2023;
+	        TextGrading.Lang = Language.English2021_2024;
             List<ArticleGradingInfo> articlesGradingInfo = getArticlesGradingInfoList(ArticlesGroupFU);
 
             GroupGradingInfo groupInfo;

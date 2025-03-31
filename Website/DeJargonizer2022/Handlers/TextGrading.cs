@@ -28,6 +28,7 @@ namespace JargonProject.Handlers
         English2018_2021,
         English2019_2022,
         English2020_2023,
+        English2021_2024,
     }
 
     public enum WordType
@@ -351,8 +352,13 @@ namespace JargonProject.Handlers
                     m_Normal = 50;
                     break;
                 case Language.English2020_2023:
-                default:
                     instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2020-2023.csv";
+                    m_Common = 1000;
+                    m_Normal = 50;
+                    break;
+                case Language.English2021_2024:
+                default:
+                    instancesMatrixRelativePath = @"~\InstanceMatrices\2024DataUKUS2021-2024.csv";
                     m_Common = 1000;
                     m_Normal = 50;
                     break;

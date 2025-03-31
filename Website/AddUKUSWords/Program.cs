@@ -13,15 +13,16 @@ namespace AddUKUSWords
     {
         static void Main(string[] args)
         {
-            GenerateDataDict(2012, 2015);
-            GenerateDataDict(2013, 2016);
-            GenerateDataDict(2014, 2017);
-            GenerateDataDict(2015, 2018);
-            GenerateDataDict(2016, 2019);
-            GenerateDataDict(2017, 2020);
-            GenerateDataDict(2018, 2021);
-            GenerateDataDict(2019, 2022);
-            GenerateDataDict(2020, 2023);
+            //GenerateDataDict(2012, 2015);
+            //GenerateDataDict(2013, 2016);
+            //GenerateDataDict(2014, 2017);
+            //GenerateDataDict(2015, 2018);
+            //GenerateDataDict(2016, 2019);
+            //GenerateDataDict(2017, 2020);
+            //GenerateDataDict(2018, 2021);
+            //GenerateDataDict(2019, 2022);
+            //GenerateDataDict(2020, 2023);
+            GenerateDataDict(2021, 2024);
             //CompareDicts();
         }
 
@@ -56,7 +57,7 @@ namespace AddUKUSWords
                 if (i == 5) break;
             }
 
-            TextGrading.Lang = Language.English2016_2019_2024;
+            TextGrading.Lang = Language.English2016_2019;
 
             foreach (string filePath in results.Keys)
             {

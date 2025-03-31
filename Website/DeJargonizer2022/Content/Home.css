@@ -48,6 +48,10 @@ li a:hover .dropDownBtn {
     background-color: #222222;
 }
 
+.navbar {
+    background-color: #021332;
+}
+
 li.dropDownElement {
     display: inline-block;
 }
@@ -137,42 +141,42 @@ li.dropDownElement {
 
 
 
-.cookie-consent-banner-container {
+.cookie-consent-banner-container1 {
     background-color: #15325b;
     padding: 30px;
-    position: relative;
-    top: 0;
+    position: sticky;
+    top: 50px;
     width: 100%;
     text-align: center;
-    z-index: 1000;
+    z-index: 50;
     --primary: #ED630B;
     --primary-light: #E57833;
 }
 
-.cookie-consent-banner-container a {
+.cookie-consent-banner-container1 a {
     font-weight: 200;
     color: #fff;
     text-decoration: inherit;
 }
 
-.cookie-consent-banner-container a:hover {
+.cookie-consent-banner-container1 a:hover {
     color: var(--primary-light);
     font-weight: 300;
 }
 
-.cookie-consent-banner-container a:focus,
-.cookie-consent-banner-container a:focus-visible {
+.cookie-consent-banner-container1 a:focus,
+.cookie-consent-banner-container1 a:focus-visible {
     color: var(--primary);
     font-weight: 300;
 }
 
-.cookie-consent-banner-container p {
+.cookie-consent-banner-container1 p {
     display: inline-block;
     margin-right: 10px;
     color: white;
 }
 
-    .cookie-consent-banner-container button {
+    .cookie-consent-banner-container1 button {
         background-color: var(--primary);
         color: white;
         border: none;

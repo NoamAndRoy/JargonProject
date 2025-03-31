@@ -410,18 +410,14 @@
     <Content Include="Content\bootstrap.min.css.map" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
-    <Content Include="Content\dist\assets\index-BoDUoGaz.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\dist\assets\index-DTfzYixJ.css">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\dist\index.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\dist\vite.svg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="Content\dist\assets\browser-B68T36og.js" />
+    <Content Include="Content\dist\assets\index-CKRZt-ZS.js" />
+    <Content Include="Content\dist\assets\index-pkF1U_sH.css" />
+    <Content Include="Content\dist\assets\login-bg-8AhTRbD7.png" />
+    <Content Include="Content\dist\assets\logo-DdrFzROp.svg" />
+    <Content Include="Content\dist\assets\registration-bg-3-DgVzuMca.png" />
+    <Content Include="Content\dist\assets\registration-bg-Cg0Xz9ox.png" />
+    <Content Include="Content\dist\index.html" />
     <Content Include="Content\GroupGrading.css" />
     <Content Include="Content\Home.css" />
     <Content Include="Content\Site.css" />
@@ -460,15 +456,6 @@
     <Content Include="half-life-dejargonizer-f4e89fe2bc96.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\dist\assets\BebasNeueBold.38c4cd9428b20239174c609313.6551951cbed483e8cc4ad77cece6786c-Bdy4SP4J.woff2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\dist\assets\BebasNeueRegular.359411b6a92a66bec574392.9ba82e67af11d8736418bb9db4d51714-DHrNTUSz.woff2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\dist\assets\Raleway-VariableFont_wght-Cinel4j-.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="InstanceMatrices\2024DataUKUS2016-2019.csv" />
     <Content Include="InstanceMatrices\2024DataUKUS2012-2015.csv" />
     <Content Include="InstanceMatrices\2024DataUKUS2013-2016.csv" />
@@ -478,6 +465,13 @@
     <Content Include="InstanceMatrices\2024DataUKUS2018-2021.csv" />
     <Content Include="InstanceMatrices\2024DataUKUS2019-2022.csv" />
     <Content Include="InstanceMatrices\2024DataUKUS2020-2023.csv" />
+    <Content Include="Content\dist\assets\BebasNeueBold.38c4cd9428b20239174c609313.6551951cbed483e8cc4ad77cece6786c-Bdy4SP4J.woff2" />
+    <Content Include="Content\dist\assets\BebasNeueRegular.359411b6a92a66bec574392.9ba82e67af11d8736418bb9db4d51714-DHrNTUSz.woff2" />
+    <Content Include="Content\dist\assets\cookie-policy-D8oX1GRu.pdf" />
+    <Content Include="Content\dist\assets\privacy-policy-CJPjOY8e.pdf" />
+    <Content Include="Content\dist\assets\Raleway-VariableFont_wght-Cinel4j-.ttf" />
+    <Content Include="Content\dist\assets\terms-of-use-CS2oNnoE.pdf" />
+    <Content Include="InstanceMatrices\2024DataUKUS2021-2024.csv" />
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />
     <Content Include="Scripts\jquery-3.4.1.min.js" />

@@ -57,8 +57,8 @@
     else
     {
         <!-- Show a consent banner or modal if cookies are not accepted -->
-        <div class="cookie-consent-banner-container">
-            <p>We use cookies to improve your experience. By using this site, you agree to our <a href="@Url.Action("Privacy", "Home")">Privacy Policy</a> and <a href="@Url.Action("Terms", "Home")">Terms of Use</a>.</p>
+        <div class="cookie-consent-banner-container1">
+            <p>We use cookies to improve your experience. By using this site, you agree to our <a href="/cookies-policy">Cookies Policy</a>.</p>
             <button id="acceptCookies" class="btn btn-primary">Accept Cookies</button>
         </div>
 
@@ -84,6 +84,7 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
+                    <li><a class="navbar-brand" href="~/">Home</a></li>
                     <li>@Html.ActionLink("De-Jargonizer", "Index", "TextGrading", new { area = "" }, new { @class = "navbar-brand" })</li>
                     <li>@Html.ActionLink("Multiple Texts", "Index", "GroupGrading", new { area = "" }, new { @class = "navbar-brand" })</li>
                     <li>@Html.ActionLink("Hebrew", "Index", "Hebrew", new { area = "" }, new { @class = "navbar-brand" })</li>

@@ -234,7 +234,6 @@ public class HalfLifeController : ApiController
                     return new List<string>
                     {
                         "Please tell me what you study and why it is important.<br />Use about 120 words (equivalent to about one minute of speech)",
-                        "OK - set, go! Tell me what you do in 120 words or so (100-140)"
                     };
                 }
                 else
@@ -338,7 +337,7 @@ public class HalfLifeController : ApiController
 
             // 30 Words
             Text30 = isSaveUserData ? history.Text30 : null,
-            Text30Jargon = history.Text30Jargon,
+            Text30Jargon = history.Text30Jargon,// Save Jargon words to DB?
             Text30GPT3 = isSaveUserData ? history.Text30GPT3 : null,
             Text30TotalWords = history.Text30TotalWords,
             Text30RareWords = history.Text30RareWords,
@@ -376,7 +375,7 @@ public class HalfLifeController : ApiController
 
         history.CurrentStage++;
 
-        TextGrading.Lang = Language.English2020_2023;
+        TextGrading.Lang = Language.English2021_2024;
         var articleGradingInfo = TextGrading.AnalyzeSingleText(text.Trim());
 
         var scoreFeedback = $"Your suitability for a general audience score was {articleGradingInfo.Score}. <br />{(articleGradingInfo.Score > 90 ? "Nicely done!" : "Try to get it higher in the next round.")}";
@@ -417,8 +416,8 @@ public class HalfLifeController : ApiController
                     history.Text120FirstJargon = string.Join(", ", articleGradingInfo.RareWordsSyns.Keys);
                     history.Text120FitrstJargonScore = articleGradingInfo.Score;
                     history.Text120FitrstRareWords = articleGradingInfo.RareWords.Count;
-                    history.Text120FitrstTotalWords = articleGradingInfo.Words.Length;
-                    history.Text120FitrstRareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.Words.Length;
+                    history.Text120FitrstTotalWords = articleGradingInfo.CleanedWords.Count;
+                    history.Text120FitrstRareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.CleanedWords.Count;
                 }
                 else
                 {
@@ -428,8 +427,8 @@ public class HalfLifeController : ApiController
                     history.Text120Last = text;
                     history.Text120LastJargonScore = articleGradingInfo.Score;
                     history.Text120LastRareWords = articleGradingInfo.RareWords.Count;
-                    history.Text120LastTotalWords = articleGradingInfo.Words.Length;
-                    history.Text120LastRareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.Words.Length;
+                    history.Text120LastTotalWords = articleGradingInfo.CleanedWords.Count;
+                    history.Text120LastRareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.CleanedWords.Count;
 
                     return new List<string> {
                         "Let’s see if this was effective.",
@@ -451,8 +450,8 @@ public class HalfLifeController : ApiController
                 history.Text60Jargon = string.Join(", ", articleGradingInfo.RareWordsSyns.Keys);
                 history.Text60JargonScore = articleGradingInfo.Score;
                 history.Text60RareWords = articleGradingInfo.RareWords.Count;
-                history.Text60TotalWords = articleGradingInfo.Words.Length;
-                history.Text60RareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.Words.Length;
+                history.Text60TotalWords = articleGradingInfo.CleanedWords.Count;
+                history.Text60RareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.CleanedWords.Count;
 
                 responses.Add("OK, now let's take it to the next level!<br />Please tell me what you do and why in only 30 words (20-40).");
                 break;
@@ -462,8 +461,8 @@ public class HalfLifeController : ApiController
                 history.Text30Jargon = string.Join(", ", articleGradingInfo.RareWordsSyns.Keys);
                 history.Text30JargonScore = articleGradingInfo.Score;
                 history.Text30RareWords = articleGradingInfo.RareWords.Count;
-                history.Text30TotalWords = articleGradingInfo.Words.Length;
-                history.Text30RareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.Words.Length;
+                history.Text30TotalWords = articleGradingInfo.CleanedWords.Count;
+                history.Text30RareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.CleanedWords.Count;
 
                 responses.Add("Finally, after you distilled your message and noticed some jargon words and difficult phrases you might wish to avoid - I give you all of your 120 words back! I bet it seems a lot now.<br />Please tell me what you study and why it is important using 120 words.");
                 break;

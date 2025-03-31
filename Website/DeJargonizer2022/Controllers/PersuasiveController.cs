@@ -230,7 +230,7 @@ public class PersuasiveController : ApiController
                 };
 
 
-                TextGrading.Lang = Language.English2020_2023;
+                TextGrading.Lang = Language.English2021_2024;
                 var articleGradingInfo = TextGrading.AnalyzeSingleText(lastUserText.Text.Trim());
 
                 if (articleGradingInfo.RareWordsSyns.Count > 0)
@@ -276,7 +276,7 @@ public class PersuasiveController : ApiController
                 return new List<string> {
                     "This stage of the task will help you check and revise your pathos (shared values with your audience):",
                     "What is the shared value that interests your audience (in 2-5 words)? For example: helping people; more accessible or accurate " +
-                    "technology; solving a problem financially; solving a problemethically; medical treatment; basic science, etc.",
+                    "technology; solving a problem financially; solving a problem ethically; medical treatment; basic science, etc.",
                 };
             case 5:
                 var response3 = ValidateWordCount(lastUserText.Text, 3);
@@ -345,7 +345,7 @@ public class PersuasiveController : ApiController
 
                 return new List<string> {
                     "This stage of the task will help you check and revise your ethos – (your credibility):",
-                    "What information can you include so that your reader will find you to be credible? Please add a short list or one sentence (Ex. Affiliation, experience, etc.).",
+                    "What information can you include so that your reader will find you to be credible? Please add a short list or one sentence (ex. affiliation, mention of previous work or methods, correct level of vocabulary).",
                 };
             case 8:
                 var response5 = ValidateWordCount(lastUserText.Text, 10);

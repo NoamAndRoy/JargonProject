@@ -13,6 +13,8 @@
 **/*.jfm
 **/azds.yaml
 **/bin
+#Added
+!DeJargonizer2025/bin/Release/net8.0/publish/**
 **/charts
 **/docker-compose*
 **/Dockerfile*

@@ -1,0 +1,164 @@
+17-Jul-17 13:38:48: An error occurred in controller: Copy, action: Scal,  - Parameter is not valid.
+17-Jul-17 13:38:57: An error occurred in controller: Copy, action: Scal,  - Parameter is not valid.
+17-Jul-17 13:39:19: An error occurred in controller: Copy, action: Scal,  - Parameter is not valid.
+17-Jul-17 13:40:33: An error occurred in controller: Copy, action: Scal,  - Parameter is not valid.
+17-Jul-17 13:40:38: An error occurred in controller: Copy, action: DynamicImag,  - Parameter is not valid.
+22-Jul-17 19:22:14: An error occurred in controller: Copy, action: Inde,  - Object reference not set to an instance of an object.
+22-Jul-17 19:22:24: An error occurred in controller: Copy, action: Inde,  - The using block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+
+22-Jul-17 19:22:28: An error occurred in controller: Copy, action: Inde,  - The using block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+
+22-Jul-17 19:22:31: An error occurred in controller: Copy, action: Inde,  - The using block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+
+22-Jul-17 19:23:42: An error occurred in controller: copy, action: Inde,  - The using block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+
+22-Jul-17 19:24:56: An error occurred in controller: copy, action: Inde,  - The using block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+
+22-Jul-17 19:27:47: An error occurred in controller: copy, action: Inde,  - The using block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+
+22-Jul-17 19:28:00: An error occurred in controller: copy, action: Inde,  - The using block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+
+22-Jul-17 19:28:18: An error occurred in controller: copy, action: Inde,  - The using block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+
+22-Jul-17 19:32:29: An error occurred in controller: Copy, action: Inde,  - Object reference not set to an instance of an object.
+22-Jul-17 19:32:34: An error occurred in controller: Copy, action: Inde,  - Object reference not set to an instance of an object.
+22-Jul-17 19:32:54: An error occurred in controller: Copy, action: Inde,  - Object reference not set to an instance of an object.
+22-Jul-17 19:33:00: An error occurred in controller: Copy, action: Inde,  - Object reference not set to an instance of an object.
+22-Jul-17 19:33:16: An error occurred in controller: Copy, action: Inde,  - Object reference not set to an instance of an object.
+22-Jul-17 19:33:52: An error occurred in controller: Copy, action: Inde,  - Object reference not set to an instance of an object.
+22-Jul-17 19:34:39: An error occurred in controller: Copy, action: Inde,  - Object reference not set to an instance of an object.
+22-Jul-17 19:35:21: An error occurred in controller: Copy, action: Inde,  - Object reference not set to an instance of an object.
+22-Jul-17 19:35:39: An error occurred in controller: Copy, action: Inde,  - Object reference not set to an instance of an object.
+22-Jul-17 19:35:53: An error occurred in controller: Copy, action: Inde,  - Object reference not set to an instance of an object.
+24-Jul-17 0:47:29: An error occurred while trying to download Article Object reference not set to an instance of an object.
+24-Jul-17 16:25:32: An error occurred while trying to download Article The remote procedure call failed. (Exception from HRESULT: 0x800706BE)
+24-Jul-17 16:27:18: An error occurred while trying to download Article The remote procedure call failed. (Exception from HRESULT: 0x800706BE)
+24-Jul-17 16:28:10: An error occurred while trying to download Article The remote procedure call failed. (Exception from HRESULT: 0x800706BE)
+24-Jul-17 16:35:15: An error occurred while trying to download Article The remote procedure call failed. (Exception from HRESULT: 0x800706BE)
+24-Jul-17 16:40:13: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 16:42:11: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 16:42:50: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 16:50:28: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 17:07:41: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 17:08:50: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 19:57:14: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 20:10:03: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 20:13:11: An error occurred while trying to download Article Object reference not set to an instance of an object.
+24-Jul-17 20:24:01: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 20:24:21: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 21:01:14: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 21:01:29: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 21:23:32: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 21:40:34: An error occurred while trying to download Article The requested member of the collection does not exist.
+24-Jul-17 21:41:02: An error occurred while trying to download Article Word cannot save this file because it is already open elsewhere. (D:\...\New Microsoft Word Document.docx)
+24-Jul-17 21:41:07: An error occurred while trying to download Article Word cannot save this file because it is already open elsewhere. (D:\...\New Microsoft Word Document.docx)
+24-Jul-17 21:41:20: An error occurred while trying to download Article Word cannot save this file because it is already open elsewhere. (D:\...\New Microsoft Word Document.docx)
+24-Jul-17 21:42:02: An error occurred while trying to download Article Word cannot save this file because it is already open elsewhere. (D:\...\New Microsoft Word Document.docx)
+24-Jul-17 21:43:10: An error occurred while trying to download Article Word cannot save this file because it is already open elsewhere. (D:\...\New Microsoft Word Document.docx)
+24-Jul-17 21:43:34: An error occurred while trying to download Article Word cannot save this file because it is already open elsewhere. (D:\...\New Microsoft Word Document.docx)
+24-Jul-17 21:46:12: An error occurred while trying to download Article Word cannot save this file because it is already open elsewhere. (D:\...\New Microsoft Word Document.docx)
+24-Jul-17 22:49:42: An error occurred while trying to download Article Word cannot save this file because it is already open elsewhere. (D:\...\New Microsoft Word Document.docx)
+24-Jul-17 22:51:21: An error occurred while trying to download Article Word cannot save this file because it is already open elsewhere. (D:\...\New Microsoft Word Document.docx)
+24-Jul-17 23:26:02: An error occurred while trying to download Article Word cannot save this file because it is already open elsewhere. (D:\...\New Microsoft Word Document.docx)
+24-Jul-17 23:29:48: An error occurred while trying to download Article Object reference not set to an instance of an object.
+24-Jul-17 23:30:03: An error occurred while trying to download Article Word cannot save this file because it is already open elsewhere. (D:\...\New Microsoft Word Document.docx)
+24-Jul-17 23:34:50: An error occurred while trying to download Article Object reference not set to an instance of an object.
+24-Jul-17 23:36:30: An error occurred while trying to download Article Object reference not set to an instance of an object.
+25-Jul-17 14:37:48: An error occurred while trying to download Article File could not be found template.docx
+25-Jul-17 14:44:46: An error occurred while trying to download Article The process cannot access the file 'D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\template.docx' because it is being used by another process.
+25-Jul-17 14:45:46: An error occurred while trying to download Article The process cannot access the file 'D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\template.docx' because it is being used by another process.
+25-Jul-17 15:41:36: An error occurred while trying to download Article Index was out of range. Must be non-negative and less than the size of the collection.
+Parameter name: index
+27-Jul-17 18:18:24: An error occurred in controller: Copy, action: Inde,  - The if block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+
+27-Jul-17 18:18:38: An error occurred in controller: copy, action: Inde,  - The if block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+
+27-Jul-17 18:19:21: An error occurred in controller: copy, action: Inde,  - The if block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+
+29-Jul-17 22:02:55: An error occurred in controller: TextGrading, action: Inde,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:56: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:56: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:02:57: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: TextGrading, action: Inde,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:03: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:04: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:04: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:06: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:07: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:07: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:07: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:07: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:07: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:07: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:07: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+29-Jul-17 22:03:07: An error occurred in controller: Home, action: Erro,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Shared\_Layout.cshtml(11): error CS0103: The name 'url' does not exist in the current context
+27-Oct-17 21:01:02: An error occurred in controller: Home, action: Abou,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Home\About.cshtml(193): error CS1002: ; expected
+27-Oct-17 21:01:57: An error occurred in controller: Home, action: Abou,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Home\About.cshtml(193): error CS1002: ; expected
+27-Oct-17 21:12:54: An error occurred in controller: Home, action: Abou,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Home\About.cshtml(193): error CS1002: ; expected
+27-Oct-17 21:16:25: An error occurred in controller: Home, action: Abou,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Home\About.cshtml(193): error CS1002: ; expected
+27-Oct-17 21:16:44: An error occurred in controller: Home, action: Abou,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Home\About.cshtml(193): error CS1002: ; expected
+27-Oct-17 21:42:46: An error occurred in controller: Home, action: Abou,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Home\About.cshtml(193): error CS1002: ; expected
+27-Oct-17 21:42:57: An error occurred in controller: Home, action: Abou,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\Home\About.cshtml(193): error CS1002: ; expected
+24-May-18 23:42:35: An error occurred in controller: Hebrew, action: Inde,  - Could not find file 'D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\InstanceMatrices\HebrewYnet.csv'.
+29-Sep-18 17:07:21: An error occurred in controller: TextGrading, action: Inde,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\TextGrading\Index.cshtml(97): error CS1002: ; expected
+29-Sep-18 17:07:28: An error occurred in controller: TextGrading, action: Inde,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\TextGrading\Index.cshtml(97): error CS1002: ; expected
+29-Sep-18 17:07:29: An error occurred in controller: TextGrading, action: Inde,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\TextGrading\Index.cshtml(97): error CS1002: ; expected
+29-Sep-18 17:42:41: An error occurred in controller: TextGrading, action: Inde,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\TextGrading\Index.cshtml(97): error CS1002: ; expected
+29-Sep-18 17:44:12: An error occurred in controller: TextGrading, action: Inde,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\TextGrading\Index.cshtml(97): error CS1002: ; expected
+29-Sep-18 17:44:40: An error occurred in controller: TextGrading, action: Inde,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\TextGrading\Index.cshtml(97): error CS1002: ; expected
+29-Sep-18 17:56:10: An error occurred in controller: TextGrading, action: Inde,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\TextGrading\Index.cshtml(97): error CS1002: ; expected
+29-Sep-18 17:57:27: An error occurred in controller: TextGrading, action: Inde,  - D:\Roy Yosef\Dropbox\Shared Projects\JargonProject Web\Jargon\Views\TextGrading\Index.cshtml(97): error CS1002: ; expected
+07/10/2020 19:03:11: An error occurred while trying to download GroupArticles Object reference not set to an instance of an object.
+07/10/2020 19:14:23: An error occurred while trying to download GroupArticles Object reference not set to an instance of an object.
+07/03/2022 02:56:06: An error occurred while trying to download Article Could not load file or assembly 'System.IO.Packaging, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. The system cannot find the file specified.
+07/03/2022 02:57:39: An error occurred while trying to download Article Could not load file or assembly 'System.IO.Packaging, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. The system cannot find the file specified.
+07/03/2022 03:03:46: An error occurred while trying to download Article File could not be found \Content\Assets\templateEng.docx
+07/03/2022 03:06:07: An error occurred while trying to download Article File could not be found \Content\Assets\templateEng.docx
+21/03/2022 01:59:41: An error occurred while trying to download Article Could not find a part of the path 'D:\Projects\DeJargonizer2022\DeJargonizer2022\TempFiles\Article.docx'.
+14-Dec-24 00:02:28: An error occurred while trying to download Article Could not find a part of the path 'D:\royosef\projects\JargonProject\Website\DeJargonizer2022\TempFiles\Article.docx'.

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>D:\royosef\projects\JargonProject\DeJargonizer2025\DeJargonizer2025\bin\Release\net8.0\publish\</_PublishTargetUrl>
+    <History>True|2025-07-09T16:35:01.3648725Z||;True|2025-07-09T19:29:12.5696890+03:00||;True|2025-07-01T01:39:44.9879383+03:00||;True|2025-06-30T15:14:23.5630411+03:00||;True|2025-06-10T16:00:25.2716583+03:00||;True|2025-06-10T12:40:59.0438136+03:00||;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>

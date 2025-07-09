@@ -15,3 +15,9 @@
 /DeJargonizer2025/DeJargonizer2025/obj/*
 /DeJargonizer2025/DeJargonizer2025/bin/*
 *.vsidx
+/Website/DeJargonizer2025/scienceandpublic.com.crt
+/Website/DeJargonizer2025/scienceandpublic.com.pem
+/Website/DeJargonizer2025/scienceandpublic.com-ca.crt
+/Website/DeJargonizer2025/bin-bak
+/Website/DeJargonizer2025/half-life-dejargonizer-f4e89fe2bc96.json
+/Website/DeJargonizer2025/Content/dist/*

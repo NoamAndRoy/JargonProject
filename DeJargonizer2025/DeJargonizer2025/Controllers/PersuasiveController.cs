@@ -131,9 +131,8 @@ public class PersuasiveController : ControllerBase
     {
         try
         {
-            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            var userId = await HttpContext.TryGetUserIdAsync();
 
-            var userId = _supabaseClient.GetUserId(authHeader);
             var responseMessages = await DetermineResponse(history, userId);
 
             // Update history with the response
@@ -148,7 +147,7 @@ public class PersuasiveController : ControllerBase
         }
     }
 
-    private async Task<List<string>> DetermineResponse(PersuasiveConversationHistory history, string userId)
+    private async Task<List<string>> DetermineResponse(PersuasiveConversationHistory history, string? userId)
     {
         var lastUserText = history.Messages.LastOrDefault(x => x.IsStudent);
 
@@ -499,7 +498,7 @@ public class PersuasiveController : ControllerBase
         }
     }
 
-    private async Task SaveToSupabase(PersuasiveConversationHistory history, string userId)
+    private async Task SaveToSupabase(PersuasiveConversationHistory history, string? userId)
     {
         var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
 

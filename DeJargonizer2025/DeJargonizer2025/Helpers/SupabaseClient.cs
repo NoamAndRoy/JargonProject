@@ -29,7 +29,7 @@ public class SupabaseClient
         await client.InitializeAsync();
     }
 
-    public async Task<bool> getIsSaveUserData(string userId)
+    public async Task<bool> getIsSaveUserData(string? userId)
     {
         if (userId == null) return false;
 
@@ -41,14 +41,5 @@ public class SupabaseClient
         if (result == null) return false;
 
         return !result.RejectSaveData;
-    }
-
-    public string GetUserId(string authHeader)
-    {
-        var token = authHeader?.Split(' ').Last();
-
-        var principal = TokenValidator.ValidateToken(token);
-        var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return userId;
     }
 }

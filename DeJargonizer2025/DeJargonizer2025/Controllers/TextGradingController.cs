@@ -90,8 +90,7 @@ namespace JargonProject.Controllers
             bool fileCantBeGraded = false;
             string? text = null;
 
-            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
-            var userId = _supabaseClient.GetUserId(authHeader);
+            var userId = await HttpContext.TryGetUserIdAsync();
 
             Language timePeriodLanguage;
             Enum.TryParse(timePriodDDL, out timePeriodLanguage);
@@ -142,12 +141,10 @@ namespace JargonProject.Controllers
             return Ok(articleGradingInfo);
         }
 
-        private async Task SaveToSupabase(ArticleGradingInfo articleGradingInfo, string userId)
+        private async Task SaveToSupabase(ArticleGradingInfo articleGradingInfo, string? userId)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
-
-
 
             var data = new UserInteraction
             {

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using JargonProject.Handlers;
 
 namespace JargonProject.Models
@@ -26,29 +27,47 @@ namespace JargonProject.Models
 
         public Language Lang { get; set; }
 
-        public string HtmlResult { 
+        private string? _htmlResult;
+
+        public string HtmlResult
+        {
             get
             {
-                var text = new StringBuilder();
+                // Return cached value if already built
+                if (_htmlResult != null) return _htmlResult;
 
-                foreach (string word in Words)
+                // Null-safe guards
+                if (Words == null || Words.Length == 0)
+                    return _htmlResult = string.Empty;
+
+                var rare = (RareWords ?? new List<string>()).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                var normal = (NormalWords ?? new List<string>()).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var sb = new StringBuilder(Words.Length * 16);
+
+                foreach (var word in Words)
                 {
-                    string cleanedWord = TextGrading.CleanWord(word).ToLower();
-                    string type = "commonWord";
+                    // classify using a cleaned version; case-insensitive sets handle casing
+                    var cleaned = TextGrading.CleanWord(word);
 
-                    if (RareWords.Contains(cleanedWord))
+                    string css = "commonWord";
+                    if (!string.IsNullOrEmpty(cleaned))
                     {
-                        type = "rareWord";
-                    }
-                    else if (NormalWords.Contains(cleanedWord))
-                    {
-                        type = "normalWord";
+                        if (rare.Contains(cleaned)) css = "rareWord";
+                        else if (normal.Contains(cleaned)) css = "normalWord";
                     }
 
-                    text.AppendFormat("<span class='{0}'>{1}</span>", type, word == "\r\n" ? "<br />" : word);
+                    // Encode the original token for safety
+                    var safe = WebUtility.HtmlEncode(word);
+
+                    // Render newline tokens as <br />
+                    if (word == "\r\n")
+                        sb.Append("<span class='").Append(css).Append("'><br /></span>");
+                    else
+                        sb.Append("<span class='").Append(css).Append("'>").Append(safe).Append("</span>");
                 }
 
-                return text.ToString();
+                return _htmlResult = sb.ToString();
             }
         }
     }

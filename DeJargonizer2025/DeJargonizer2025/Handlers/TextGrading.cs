@@ -34,16 +34,19 @@ namespace JargonProject.Handlers
 
     public static class TextGrading
     {
-        private static Dictionary<string, int> s_Words;
-        private static List<string> s_Names;
+        private static Dictionary<string, int> s_Words = new(StringComparer.OrdinalIgnoreCase);
+        private static HashSet<string> s_Names = new(StringComparer.OrdinalIgnoreCase);
 
         private static readonly List<string> sr_SplitOptions;
+        private static readonly object s_WordsLock = new();
+        private static readonly object s_NamesLock = new();
 
         private static int m_Common;
         private static int m_Normal;
-        private static bool m_WordsLoaded;
-        private static bool m_NamesLoaded;
+        private static volatile bool m_WordsLoaded;
+        private static volatile bool m_NamesLoaded;
         private static Language lang;
+
 
         public static Language Lang
         {
@@ -56,9 +59,6 @@ namespace JargonProject.Handlers
 
         static TextGrading()
         {
-            s_Words = new Dictionary<string, int>();
-            s_Names = new List<string>();
-
             sr_SplitOptions = new List<string>(char.MaxValue);
 
             for (int i = char.MinValue; i <= char.MaxValue; i++)
@@ -73,6 +73,33 @@ namespace JargonProject.Handlers
             m_NamesLoaded = false;
         }
 
+        private static void EnsureDictionariesLoaded(IWebHostEnvironment env)
+        {
+            if (!m_WordsLoaded)
+            {
+                lock (s_WordsLock)
+                {
+                    if (!m_WordsLoaded)
+                    {
+                        loadWords(env);
+                        m_WordsLoaded = true;
+                    }
+                }
+            }
+            if (!m_NamesLoaded)
+            {
+                lock (s_NamesLock)
+                {
+                    if (!m_NamesLoaded)
+                    {
+                        loadNames(env);
+                        m_NamesLoaded = true;
+                    }
+                }
+            }
+        }
+
+
         public static ArticleGradingInfo AnalyzeSingleText(string i_Text, IWebHostEnvironment env)
         {
             ArticleGradingInfo articleGradingInfo;
@@ -84,18 +111,7 @@ namespace JargonProject.Handlers
             }
             else
             {
-                if (!m_WordsLoaded)
-                {
-                    loadWords(env);
-                    m_WordsLoaded = true;
-                }
-
-                if (!m_NamesLoaded)
-                {
-                    loadNames(env);
-                    m_NamesLoaded = true;
-                }
-
+                EnsureDictionariesLoaded(env);
                 articleGradingInfo = analyzeArticle(i_Text);
             }
 
@@ -190,38 +206,37 @@ namespace JargonProject.Handlers
 
         private static List<string> getWordsInRange(List<string> i_Words, int i_MinValue, int i_MaxValue, bool includeNames = false)
         {
-            List<string> wordsInRange = new List<string>();
+            var wordsInRange = new List<string>(i_Words.Count);
 
-            foreach (string word in i_Words)
+            foreach (var raw in i_Words)
             {
-                if (s_Names.Contains(word))
+                var w = raw; // already cleaned by getCleanedWords()
+                if (w.Length == 0) continue;
+
+                if (s_Names.Contains(w))
                 {
-                    if (includeNames)
-                    {
-                        wordsInRange.Add(word);
-                    }
+                    if (includeNames) wordsInRange.Add(w);
+                    continue;
                 }
-                else if (s_Words.ContainsKey(word.ToLower()))
+
+                if (s_Words.TryGetValue(w, out var val))
                 {
-                    int wordValue = s_Words[word.ToLower()];
-                    if (wordValue >= i_MinValue && wordValue <= i_MaxValue)
-                    {
-                        wordsInRange.Add(word.ToLower());
-                    }
+                    if (val >= i_MinValue && val <= i_MaxValue)
+                        wordsInRange.Add(w);
                 }
                 else if (i_MinValue <= 0)
                 {
-                    wordsInRange.Add(word.ToLower());
+                    // unknown word counts as rare bucket
+                    wordsInRange.Add(w);
                 }
             }
-
             return wordsInRange;
         }
 
         private static List<string> getCleanedWords(string i_Text)
         {
             i_Text = i_Text.Replace("\'s", "");
-            List<string> words = i_Text.Split(new string[] { " ", Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            List<string> words = i_Text.Split([" ", Environment.NewLine], StringSplitOptions.RemoveEmptyEntries).ToList();
 
             List<string> wordsToDelete = new List<string>();
 
@@ -265,12 +280,12 @@ namespace JargonProject.Handlers
             return words;
         }
 
-        public static int CalculateScore(int i_AmountOfCommonWord, int i_AmountOfNormalWord, int i_AmountOfRareWord, int i_AmountOfCleanWords)
+        public static int CalculateScore(int common, int normal, int rare, int total)
         {
-            double score = i_AmountOfNormalWord * 0.5f + i_AmountOfRareWord * 1;
-            score *= 100f / i_AmountOfCleanWords;
+            if (total <= 0) return 100;
+            double score = normal * 0.5 + rare * 1.0;
+            score *= 100.0 / total;
             score = Math.Round(100 - score);
-
             return (int)score;
         }
 
@@ -358,40 +373,51 @@ namespace JargonProject.Handlers
                     break;
             }
 
-            string instancesMatrixFullPath = Path.Combine(env.ContentRootPath, instancesMatrixRelativePath.Substring(2));
+            var instancesMatrixFullPath = Path.Combine(env.ContentRootPath, instancesMatrixRelativePath.Substring(2));
+            if (!File.Exists(instancesMatrixFullPath)) return;
 
-            if (string.IsNullOrEmpty(instancesMatrixFullPath)) return;
+            // fresh map each load; case-insensitive
+            var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-            TextReader data = new StreamReader(new FileStream(instancesMatrixFullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-            var csv = new CsvReader(data, new CsvConfiguration(CultureInfo.CurrentCulture) { HasHeaderRecord = false });
-
-            s_Words.Clear();
+            using var fs = new FileStream(instancesMatrixFullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var reader = new StreamReader(fs);
+            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false });
 
             while (csv.Read())
             {
-                s_Words.Add(csv[0], int.Parse(csv[1]));
+                var rawKey = (csv[0] ?? string.Empty).Trim();
+                if (string.IsNullOrEmpty(rawKey)) continue;
+
+                var ok = int.TryParse(csv[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var value);
+                if (!ok) continue;
+
+                // overwrite duplicates rather than throwing
+                map[rawKey] = value;
             }
-            data.Close();
+
+            s_Words = map; // swap atomically
         }
 
         private static void loadNames(IWebHostEnvironment env)
         {
-            string namesPath = Path.Combine(env.ContentRootPath, "InstanceMatrices", "names.csv");
+            var namesPath = Path.Combine(env.ContentRootPath, "InstanceMatrices", "names.csv");
+            if (!File.Exists(namesPath)) return;
 
-            if (string.IsNullOrEmpty(namesPath)) return;
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            TextReader data = new StreamReader(new FileStream(namesPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-            var csv = new CsvReader(data, new CsvConfiguration(CultureInfo.CurrentCulture) { HasHeaderRecord = false });
-
-            s_Names.Clear();
+            using var fs = new FileStream(namesPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var reader = new StreamReader(fs);
+            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false });
 
             while (csv.Read())
             {
-                s_Names.Add(csv[0]);
+                var name = (csv[0] ?? string.Empty).Trim();
+                if (name.Length > 0) set.Add(name);
             }
 
-            data.Close();
+            s_Names = set; // swap atomically
         }
+
 
         public static string LoadTextFromFile(Stream i_Stream, string i_Extension)
         {

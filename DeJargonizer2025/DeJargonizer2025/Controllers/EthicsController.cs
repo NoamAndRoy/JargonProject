@@ -89,7 +89,7 @@ public class EthicsController : ControllerBase
         {
             var authHeader = Request.Headers["Authorization"].FirstOrDefault();
 
-            var userId = _supabaseClient.GetUserId(authHeader);
+            var userId = await HttpContext.TryGetUserIdAsync();
             var responseMessages = await DetermineResponse(history, userId);
 
             // Update history with the response
@@ -104,7 +104,7 @@ public class EthicsController : ControllerBase
         }
     }
 
-    private async Task<List<string>> DetermineResponse(EthicsConversationHistory history, string userId)
+    private async Task<List<string>> DetermineResponse(EthicsConversationHistory history, string? userId)
     {
         var lastUserText = history.Messages.LastOrDefault(x => x.IsStudent);
 
@@ -227,7 +227,7 @@ public class EthicsController : ControllerBase
     }
 
 
-    private async Task SaveToSupabase(EthicsConversationHistory history, string userId)
+    private async Task SaveToSupabase(EthicsConversationHistory history, string? userId)
     {
         var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
 

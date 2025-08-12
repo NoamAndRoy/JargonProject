@@ -169,9 +169,7 @@ public class HalfLifeController : ControllerBase
     {
         try
         {
-            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
-
-            var userId = _supabaseClient.GetUserId(authHeader);
+            var userId = await HttpContext.TryGetUserIdAsync();
             var responseMessages = await DetermineResponse(history, userId);
 
             // Update history with the response
@@ -187,7 +185,7 @@ public class HalfLifeController : ControllerBase
     }
 
 
-    private async Task<List<string>> DetermineResponse(HalfLifeConversationHistory  history, string userId)
+    private async Task<List<string>> DetermineResponse(HalfLifeConversationHistory  history, string? userId)
     {
         var lastUserText = history.Messages.LastOrDefault(x => x.IsStudent);
 
@@ -289,7 +287,7 @@ public class HalfLifeController : ControllerBase
         }
     }
 
-    private async Task SaveToSupabase(HalfLifeConversationHistory  history, string userId)
+    private async Task SaveToSupabase(HalfLifeConversationHistory  history, string? userId)
     {
         var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
 

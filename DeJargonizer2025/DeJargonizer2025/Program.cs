@@ -1,3 +1,8 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+// using Microsoft.AspNetCore.HttpOverrides; // only if you need X-Forwarded-* later
+
 using DeJargonizer2025.Helpers;
 using JargonProject.Services;
 
@@ -18,9 +23,7 @@ try
         });
     });
 
-    // Add services to the container.
     builder.Services.AddHttpClient("CustomClient");
-
     builder.Services.AddSingleton<UsageCounter>();
     builder.Services.AddSingleton<GPTApiClient>();
 
@@ -29,31 +32,82 @@ try
     builder.Services.AddSingleton(supabaseClient);
 
     builder.Services.AddControllers();
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
+
+
+    var supabaseSecret = Environment.GetEnvironmentVariable("SUPABASE_JWT_SECRET")
+        ?? throw new InvalidOperationException("SUPABASE_JWT_SECRET is missing.");
+    
+    var projectRef = Environment.GetEnvironmentVariable("SUPABASE_PROJECT_REF"); 
+
+    var issuer = string.IsNullOrWhiteSpace(projectRef)
+        ? null
+        : $"https://{projectRef}.supabase.co/auth/v1";
+
+    if (!string.IsNullOrWhiteSpace(supabaseSecret))
+    {
+        builder.Services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(o =>
+            {
+                o.RequireHttpsMetadata = false; // container runs http
+                o.SaveToken = true;
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = !string.IsNullOrWhiteSpace(issuer),
+                    ValidIssuer = issuer,
+                    ValidateAudience = false,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(supabaseSecret)),
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(2),
+                    NameClaimType = "sub",
+                    RoleClaimType = "role"
+                };
+                o.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = ctx =>
+                    {
+                        var auth = ctx.Request.Headers.Authorization.ToString();
+                        if (string.IsNullOrWhiteSpace(auth) || !auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                            return Task.CompletedTask;
+
+                        var token = auth.Substring("Bearer ".Length).Trim();
+                        if (string.IsNullOrWhiteSpace(token) || token == "null" || token == "undefined")
+                            return Task.CompletedTask; // treat as anonymous (no IDX12741 spam)
+
+                        ctx.Token = token;
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+    }
 
     var app = builder.Build();
 
     app.UseCors("ReactPolicy");
 
-    // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI();
     }
 
-    app.UseHttpsRedirection();
+    // Serve your SPA/static files
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+
+    app.UseRouting();
+
+    if (!string.IsNullOrWhiteSpace(supabaseSecret))
+        app.UseAuthentication();
 
     app.UseAuthorization();
 
     app.MapControllers();
 
-    app.UseDefaultFiles(); // enables index.html as the default
-    app.UseStaticFiles();
-
-    app.MapFallbackToFile("index.html"); // for React Router
+    app.MapFallbackToFile("index.html");
 
     app.Run();
 }

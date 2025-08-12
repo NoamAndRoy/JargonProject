@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
+using DeJargonizer2025.Helpers;
 using JargonProject.Services;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
@@ -10,8 +10,8 @@ using Supabase.Postgrest.Models;
 public class EthicsController : ControllerBase
 {
     private readonly SupabaseClient _supabaseClient;
-    private readonly HttpClient _client;
     private readonly UsageCounter _usageCounter;
+    private readonly GPTApiClient _gptApiClient;
     private readonly ILogger<EthicsController> _logger;
 
     readonly Dictionary<int, (int min, int max)> wordCountRanges = new Dictionary<int, (int min, int max)>
@@ -74,12 +74,12 @@ public class EthicsController : ControllerBase
         public bool IsStudent { get; set; }  // Indicates the current stage of the conversation
     }
 
-    public EthicsController(IHttpClientFactory httpClientFactory, SupabaseClient supabaseClient, ILogger<EthicsController> logger, UsageCounter usageCounter)
+    public EthicsController(SupabaseClient supabaseClient, ILogger<EthicsController> logger, UsageCounter usageCounter, GPTApiClient gptApiClient)
     {
-        _client = httpClientFactory.CreateClient("CustomClient");
         _supabaseClient = supabaseClient;
         _logger = logger;
         _usageCounter = usageCounter;
+        _gptApiClient = gptApiClient;
     }
 
     [HttpPost]
@@ -183,7 +183,7 @@ public class EthicsController : ControllerBase
 
                     return new List<string>
                     {
-                        "Why is the version you chose better? (20-60 words)"
+                        "Why is the version you chose better? Or why are they equal? (20-60 words)"
                     };
                 }
                 else
@@ -206,24 +206,6 @@ public class EthicsController : ControllerBase
 
                 history.CurrentStage++;
                 history.WhyIsBetter = lastUserText.Text;
-
-                return new List<string> {
-                    "Following this task, what information would you take care to add to your research summary next time you write?",
-                };
-
-            case 6:
-                var response8 = ValidateWordCount(lastUserText.Text, 10);
-
-                if (!string.IsNullOrEmpty(response8))
-                {
-                    return new List<string> { response8 };
-                }
-
-                history.CurrentStage++;
-                history.AdditionalInformation = lastUserText.Text;
-
-                history.CurrentStage++;
-
                 //await SaveToGoogleSheets(history);
                 await SaveToSupabase(history, userId);
 
@@ -298,51 +280,6 @@ public class EthicsController : ControllerBase
     {
         string prompt = $"Here is a brief academic description of a research project and an ethical issue that may arise: {text}. What other questions or issues might arise in such a project?";
 
-        HttpRequestMessage request = CreatePostRequest(prompt);
-        HttpResponseMessage response = await _client.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-        string jsonResponse = await response.Content.ReadAsStringAsync();
-
-        return ExtractText(jsonResponse);
-    }
-
-    private HttpRequestMessage CreatePostRequest(string prompt)
-    {
-        string apiUrl = Environment.GetEnvironmentVariable("OPENAI_API_URL");
-        string apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-
-        var request = new HttpRequestMessage(HttpMethod.Post, apiUrl);
-        request.Headers.Add("Authorization", $"Bearer {apiKey}");
-
-        var payload = new
-        {
-            prompt = prompt,
-            temperature = 0.7,
-            max_tokens = 150,
-            top_p = 1.0,
-            frequency_penalty = 0.0,
-            presence_penalty = 0.0
-        };
-
-        string jsonContent = JsonConvert.SerializeObject(payload);
-        request.Content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
-
-        return request;
-    }
-
-    private string ExtractText(string jsonResponse)
-    {
-        var response = JsonConvert.DeserializeAnonymousType(jsonResponse, new
-        {
-            choices = new[] {
-                new { text = "" }
-            }
-        });
-
-        if (response != null && response.choices.Length > 0)
-        {
-            return response.choices[0].text.Trim();
-        }
-        return string.Empty;
+        return await _gptApiClient.RephraseText(prompt);
     }
 }

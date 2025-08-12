@@ -1,6 +1,0 @@
-@DeJargonizer2025_HostAddress = http://localhost:5177
-
-GET {{DeJargonizer2025_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using DeJargonizer2025.Helpers;
 using JargonProject.Services;
 
 try
@@ -22,6 +22,7 @@ try
     builder.Services.AddHttpClient("CustomClient");
 
     builder.Services.AddSingleton<UsageCounter>();
+    builder.Services.AddSingleton<GPTApiClient>();
 
     var supabaseClient = new SupabaseClient();
     supabaseClient.Init().GetAwaiter().GetResult();

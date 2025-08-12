@@ -24,6 +24,7 @@ namespace JargonProject.Models
         public string Error { get; set; }
 
         public string Name { get; set; }
+        public string? TaskId { get; set; }
 
         public Language Lang { get; set; }
 

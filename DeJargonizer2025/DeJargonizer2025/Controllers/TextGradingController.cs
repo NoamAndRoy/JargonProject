@@ -13,6 +13,7 @@ using Color = Xceed.Drawing.Color;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System.Text.Json;
 
 namespace JargonProject.Controllers
 {
@@ -108,8 +109,7 @@ namespace JargonProject.Controllers
                         articleGradingInfo.Name = ArticleFU.FileName.Substring(0, ArticleFU.FileName.LastIndexOf('.'));
 
                         _usageCounter.UpdateNumberOfUses(1);
-                        await SaveToSupabase(articleGradingInfo, userId);
-
+                        articleGradingInfo.TaskId = await SaveToSupabase(articleGradingInfo, userId);
                     }
                     catch
                     {
@@ -126,7 +126,7 @@ namespace JargonProject.Controllers
                 articleGradingInfo = TextGrading.AnalyzeSingleText(ContentTA, _env);
 
                 _usageCounter.UpdateNumberOfUses(1);
-                await SaveToSupabase(articleGradingInfo, userId);
+                articleGradingInfo.TaskId = await SaveToSupabase(articleGradingInfo, userId);
             }
 
 
@@ -141,7 +141,7 @@ namespace JargonProject.Controllers
             return Ok(articleGradingInfo);
         }
 
-        private async Task SaveToSupabase(ArticleGradingInfo articleGradingInfo, string? userId)
+        private async Task<string?> SaveToSupabase(ArticleGradingInfo articleGradingInfo, string? userId)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
@@ -165,11 +165,18 @@ namespace JargonProject.Controllers
 
             try
             {
-                await _supabaseClient.client.From<UserInteraction>().Insert(data);
+                var result = await _supabaseClient.client.From<UserInteraction>().Insert(data);
+
+                using JsonDocument doc = JsonDocument.Parse(result.Content);
+                string id = doc.RootElement[0].GetProperty("id").GetString();
+
+                return id;
             }
             catch (Exception ex)
             {
             }
+
+            return null;
         }
 
         [HttpPost("BuildYourOwnDeJargonizer")]

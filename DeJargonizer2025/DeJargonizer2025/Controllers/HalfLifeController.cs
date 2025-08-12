@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 using DeJargonizer2025.Helpers;
 using JargonProject.Handlers;
 using JargonProject.Models;
@@ -6,6 +7,7 @@ using JargonProject.Services;
 using Microsoft.AspNetCore.Mvc;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
+using static JargonProject.Controllers.TextGradingController;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -106,6 +108,7 @@ public class HalfLifeController : ControllerBase
     {
         public List<HalfLifeMessage> Messages { get; set; }
         public int CurrentStage { get; set; }
+        public string? TaskId { get; set; }
 
         public string Text120First { get; set; }
         public string Text120FirstJargon { get; set; }
@@ -257,7 +260,7 @@ public class HalfLifeController : ControllerBase
                     history.CurrentStage++;
 
                     //await SaveToGoogleSheets(history);
-                    await SaveToSupabase(history, userId);
+                    history.TaskId = await SaveToSupabase(history, userId);
 
 
                     _usageCounter.UpdateNumberOfUses(1);
@@ -287,7 +290,7 @@ public class HalfLifeController : ControllerBase
         }
     }
 
-    private async Task SaveToSupabase(HalfLifeConversationHistory  history, string? userId)
+    private async Task<string?> SaveToSupabase(HalfLifeConversationHistory  history, string? userId)
     {
         var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
 
@@ -337,13 +340,20 @@ public class HalfLifeController : ControllerBase
 
         try
         {
-            await _supabaseClient.client.From<HalfLifeUserInteraction>().Insert(data);
+            var result = await _supabaseClient.client.From<HalfLifeUserInteraction>().Insert(data);
             Debug.WriteLine("Data successfully saved to Supabase.");
+
+            using JsonDocument doc = JsonDocument.Parse(result.Content);
+            string id = doc.RootElement[0].GetProperty("id").GetString();
+
+            return id;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error saving data to Supabase: {ex.Message}");
         }
+
+        return null;
     }
 
     private async Task<List<string>> ProcessStageAsync(HalfLifeConversationHistory  history, int wordLimit, bool lastRound = false)

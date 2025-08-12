@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 using DeJargonizer2025.Helpers;
 using JargonProject.Handlers;
 using JargonProject.Models;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
+using static JargonProject.Controllers.TextGradingController;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -32,6 +34,7 @@ public class PersuasiveController : ControllerBase
     {
         public List<PersuasiveMessage> Messages { get; set; }
         public int CurrentStage { get; set; }
+        public string? TaskId { get; set; }
 
         public string DetailedAudience { get; set; }
         public string OriginalText { get; set; }
@@ -475,7 +478,7 @@ public class PersuasiveController : ControllerBase
                 history.WhatYouHaveLearnt = lastUserText.Text;
 
                 //await SaveToGoogleSheets(history);
-                await SaveToSupabase(history, userId);
+                history.TaskId = await SaveToSupabase(history, userId);
 
                 _usageCounter.UpdateNumberOfUses(1);
 
@@ -498,7 +501,7 @@ public class PersuasiveController : ControllerBase
         }
     }
 
-    private async Task SaveToSupabase(PersuasiveConversationHistory history, string? userId)
+    private async Task<string?> SaveToSupabase(PersuasiveConversationHistory history, string? userId)
     {
         var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
 
@@ -531,13 +534,20 @@ public class PersuasiveController : ControllerBase
 
         try
         {
-            await _supabaseClient.client.From<PersuasiveUserInteraction>().Insert(data);
+            var result = await _supabaseClient.client.From<PersuasiveUserInteraction>().Insert(data);
             Debug.WriteLine("Data successfully saved to Supabase.");
+
+            using JsonDocument doc = JsonDocument.Parse(result.Content);
+            string id = doc.RootElement[0].GetProperty("id").GetString();
+
+            return id;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error saving data to Supabase: {ex.Message}");
         }
+
+        return null;
     }
 
     private string GenerateReplacementSyns(ArticleGradingInfo articleGradingInfo, string word)

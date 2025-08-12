@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 using DeJargonizer2025.Helpers;
 using JargonProject.Services;
 using Microsoft.AspNetCore.Mvc;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
+using static JargonProject.Controllers.TextGradingController;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -26,6 +28,7 @@ public class EthicsController : ControllerBase
     {
         public List<EthicsMessage> Messages { get; set; }
         public int CurrentStage { get; set; }
+        public string? TaskId { get; set; }
         public string OriginalText { get; set; }
         public string MitigateText { get; set; }
         public string FinalText { get; set; }
@@ -207,7 +210,7 @@ public class EthicsController : ControllerBase
                 history.CurrentStage++;
                 history.WhyIsBetter = lastUserText.Text;
                 //await SaveToGoogleSheets(history);
-                await SaveToSupabase(history, userId);
+                history.TaskId = await SaveToSupabase(history, userId);
 
                 _usageCounter.UpdateNumberOfUses(1);
 
@@ -227,7 +230,7 @@ public class EthicsController : ControllerBase
     }
 
 
-    private async Task SaveToSupabase(EthicsConversationHistory history, string? userId)
+    private async Task<string?> SaveToSupabase(EthicsConversationHistory history, string? userId)
     {
         var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
 
@@ -249,13 +252,18 @@ public class EthicsController : ControllerBase
 
         try
         {
-            await _supabaseClient.client.From<EthicsUserInteraction>().Insert(data);
-            Debug.WriteLine("Data successfully saved to Supabase.");
+            var result = await _supabaseClient.client.From<EthicsUserInteraction>().Insert(data);
+
+            using JsonDocument doc = JsonDocument.Parse(result.Content);
+            string id = doc.RootElement[0].GetProperty("id").GetString();
+
+            return id;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error saving data to Supabase: {ex.Message}");
         }
+
+        return null;
     }
 
 

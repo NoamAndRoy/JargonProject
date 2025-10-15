@@ -38,12 +38,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 7,
+          "SelectedChildIndex": 5,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 4,
@@ -55,8 +51,7 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2025-03-31T10:10:42.945Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -69,7 +64,47 @@
               "ViewState": "AgIAACYAAAAAAAAAAAAgwDQAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-10T05:11:33.277Z",
-              "IsPinned": true,
+              "IsPinned": true
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "TextGradingController.cs",
+              "DocumentMoniker": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\TextGradingController.cs",
+              "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\TextGradingController.cs",
+              "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\TextGradingController.cs",
+              "RelativeToolTip": "DeJargonizer2025\\Controllers\\TextGradingController.cs",
+              "ViewState": "AgIAAEQAAAAAAAAAAAAcwKQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-12T08:12:53.72Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "EthicsController.cs",
+              "DocumentMoniker": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\EthicsController.cs",
+              "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\EthicsController.cs",
+              "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\EthicsController.cs",
+              "RelativeToolTip": "DeJargonizer2025\\Controllers\\EthicsController.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAiwB4AAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-10T04:55:58.067Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "HalfLifeController.cs",
+              "DocumentMoniker": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\HalfLifeController.cs",
+              "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\HalfLifeController.cs",
+              "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\HalfLifeController.cs",
+              "RelativeToolTip": "DeJargonizer2025\\Controllers\\HalfLifeController.cs",
+              "ViewState": "AgIAAAIBAAAAAAAAAAAAAA8BAABVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-12T08:12:38.531Z",
               "EditorCaption": ""
             },
             {
@@ -82,34 +117,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Helpers\\SupabaseClient.cs",
               "ViewState": "AgIAABoAAAAAAAAAAIA5wCAAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-12T08:19:58.561Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "TextGradingController.cs",
-              "DocumentMoniker": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\TextGradingController.cs",
-              "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\TextGradingController.cs",
-              "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\TextGradingController.cs",
-              "RelativeToolTip": "DeJargonizer2025\\Controllers\\TextGradingController.cs",
-              "ViewState": "AgIAAEQAAAAAAAAAAAAcwKQAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-12T08:12:53.72Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "EthicsController.cs",
-              "DocumentMoniker": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\EthicsController.cs",
-              "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\EthicsController.cs",
-              "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\EthicsController.cs",
-              "RelativeToolTip": "DeJargonizer2025\\Controllers\\EthicsController.cs",
-              "ViewState": "AgIAAA4AAAAAAAAAAAAiwB4AAAArAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-10T04:55:58.067Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-12T08:19:58.561Z"
             },
             {
               "$type": "Document",
@@ -121,21 +129,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\PersuasiveController.cs",
               "ViewState": "AgIAAMcBAAAAAAAAAAAUwNUBAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-12T08:12:47.892Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "HalfLifeController.cs",
-              "DocumentMoniker": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\HalfLifeController.cs",
-              "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\HalfLifeController.cs",
-              "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\HalfLifeController.cs",
-              "RelativeToolTip": "DeJargonizer2025\\Controllers\\HalfLifeController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAG8AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-12T08:12:38.531Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-12T08:12:47.892Z"
             }
           ]
         }

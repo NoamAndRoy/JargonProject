@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Linq;
+using System.Text.Json;
 using DeJargonizer2025.Helpers;
 using JargonProject.Handlers;
 using JargonProject.Models;
@@ -17,6 +19,9 @@ public class HalfLifeController : ControllerBase
     private readonly UsageCounter _usageCounter;
     private readonly GPTApiClient _gptApiClient;
     private readonly IWebHostEnvironment _env;
+    private readonly GoogleSheetsService _googleSheetsService;
+    private readonly string _fullFeedbackSheetName;
+    private readonly string _noFeedbackSheetName;
 
     readonly Dictionary<int, (int min, int max)> wordCountRanges = new Dictionary<int, (int min, int max)>
     {
@@ -102,10 +107,12 @@ public class HalfLifeController : ControllerBase
         public double Text120LastJargonScore { get; set; }
     }
 
-    public class HalfLifeConversationHistory 
+    public class HalfLifeConversationHistory
     {
         public List<HalfLifeMessage> Messages { get; set; }
         public int CurrentStage { get; set; }
+
+        public string StudentName { get; set; }
 
         public string Text120First { get; set; }
         public string Text120FirstJargon { get; set; }
@@ -153,8 +160,9 @@ public class HalfLifeController : ControllerBase
         public bool IsStudent { get; set; }  // Indicates the current stage of the conversation
     }
 
-    public HalfLifeController(IHttpClientFactory httpClientFactory, SupabaseClient supabaseClient, ILogger<HalfLifeController> logger, 
-                                UsageCounter usageCounter, IWebHostEnvironment env, GPTApiClient gptApiClient)
+    public HalfLifeController(IHttpClientFactory httpClientFactory, SupabaseClient supabaseClient, ILogger<HalfLifeController> logger,
+                                UsageCounter usageCounter, IWebHostEnvironment env, GPTApiClient gptApiClient,
+                                GoogleSheetsService googleSheetsService)
     {
         _client = httpClientFactory.CreateClient("CustomClient");
         _supabaseClient = supabaseClient;
@@ -162,6 +170,9 @@ public class HalfLifeController : ControllerBase
         _usageCounter = usageCounter;
         _env = env;
         _gptApiClient = gptApiClient;
+        _googleSheetsService = googleSheetsService;
+        _fullFeedbackSheetName = Environment.GetEnvironmentVariable("HALFLIFE_SHEET_FULL") ?? "HalfLifeWithFeedback";
+        _noFeedbackSheetName = Environment.GetEnvironmentVariable("HALFLIFE_SHEET_NO_FEEDBACK") ?? "HalfLifeNoFeedback";
     }
 
     [HttpPost]
@@ -172,7 +183,7 @@ public class HalfLifeController : ControllerBase
             var authHeader = Request.Headers["Authorization"].FirstOrDefault();
 
             var userId = _supabaseClient.GetUserId(authHeader);
-            var responseMessages = await DetermineResponse(history, userId);
+            var responseMessages = await DetermineResponse(history, userId, includeFeedback: true);
 
             // Update history with the response
             history.Messages.AddRange(responseMessages.Select(m => new HalfLifeMessage { Text = m, IsStudent = false }));
@@ -186,21 +197,70 @@ public class HalfLifeController : ControllerBase
         }
     }
 
-
-    private async Task<List<string>> DetermineResponse(HalfLifeConversationHistory  history, string userId)
+    [HttpPost("no-feedback")]
+    public async Task<IActionResult> ProcessConversationWithoutFeedback([FromBody] HalfLifeConversationHistory history)
     {
-        var lastUserText = history.Messages.LastOrDefault(x => x.IsStudent);
+        try
+        {
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            var userId = _supabaseClient.GetUserId(authHeader);
+            var responseMessages = await DetermineResponse(history, userId, includeFeedback: false);
+
+            history.Messages.AddRange(responseMessages.Select(m => new HalfLifeMessage { Text = m, IsStudent = false }));
+
+            return Ok(new { Messages = responseMessages, UpdatedHistory = history });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while processing conversation without feedback.");
+            return StatusCode(500, "An error occurred while processing your request.");
+        }
+    }
+
+
+    private async Task<List<string>> DetermineResponse(HalfLifeConversationHistory history, string userId, bool includeFeedback)
+    {
+        history.Messages ??= new List<HalfLifeMessage>();
+        var lastUserMessage = history.Messages.LastOrDefault(x => x.IsStudent)?.Text;
 
         switch (history.CurrentStage)
         {
-            case 1:
-
-                if (ValidateUserRespose(lastUserText.Text, new List<string> { "1", "2", "3", "4" }))
+            case 0:
+                history.CurrentStage = 1;
+                return new List<string>
                 {
-                    history.StartTime = DateTime.Now;
-                    history.CurrentStage++;
+                    "Welcome to the Half-Life writing exercise! We're glad you're here.",
+                    "Before we begin, please share your full name so we can save your progress for the research study."
+                };
+            case 1:
+                if (!string.IsNullOrWhiteSpace(lastUserMessage))
+                {
+                    history.StudentName = lastUserMessage.Trim();
+                    history.CurrentStage = 2;
 
-                    switch (lastUserText.Text)
+                    var thankYou = string.IsNullOrWhiteSpace(history.StudentName)
+                        ? "Thanks!"
+                        : $"Thanks, {history.StudentName}!";
+
+                    var audiencePrompt =
+                        "Before we dive into the writing process, could you please provide some insight into the science background of your intended audience? This will assist the AI in tailoring appropriate suggestions for your task:" +
+                        "<div class='chat-option'>(1) Elementary (primary) school level science (learned science until they were 12 years old)</div>" +
+                        "<div class='chat-option'>(2) Junior high school level science (learned science until they were 15 years old)</div>" +
+                        "<div class='chat-option'>(3) High school level science (learned science until they were 18 years old)</div>" +
+                        "<div class='chat-option'>(4) Adult audience with mixed background</div>";
+
+                    return new List<string> { thankYou, audiencePrompt };
+                }
+
+                return new List<string> { "Please share your name so we can continue." };
+
+            case 2:
+                if (ValidateUserRespose(lastUserMessage, new List<string> { "1", "2", "3", "4" }))
+                {
+                    history.StartTime = DateTime.UtcNow;
+                    history.CurrentStage = 3;
+
+                    switch (lastUserMessage.Trim())
                     {
                         case "1":
                             history.TargetAudience = "Elementary";
@@ -218,29 +278,31 @@ public class HalfLifeController : ControllerBase
 
                     return new List<string>
                     {
-                        "Please tell me what you study and why it is important.<br />Use about 120 words (equivalent to about one minute of speech)",
+                        "Please tell me what you study and why it is important.<br />Use about 120 words (equivalent to about one minute of speech)"
                     };
                 }
-                else
+
+                return new List<string>
                 {
-                    return new List<string> { "Please enter your answer as single digit: " +
-                        "<div class='chat-option'>(1) Elementary (primary) school level science (learned science until they were 12 years old)</div>" +
-                        "<div class='chat-option'>(2) Junior high school level science (learned science until they were 15 years old)</div>" +
-                        "<div class='chat-option'>(3) High school level science (learned science until they were 18 years old)</div>" +
-                        "<div class='chat-option'>(4) Adult audience with mixed background</div>" };
-                }
-            case 2: // Welcome message
-                return await ProcessStageAsync(history, 120);
-            case 3: // First 120 words
-                return await ProcessStageAsync(history, 60);
-            case 4: // 60 words
-                return await ProcessStageAsync(history, 30);
-            case 5: // 30 words
-                return await ProcessStageAsync(history, 120, true); // Second round of 120 words
+                    "Please enter your answer as single digit: " +
+                    "<div class='chat-option'>(1) Elementary (primary) school level science (learned science until they were 12 years old)</div>" +
+                    "<div class='chat-option'>(2) Junior high school level science (learned science until they were 15 years old)</div>" +
+                    "<div class='chat-option'>(3) High school level science (learned science until they were 18 years old)</div>" +
+                    "<div class='chat-option'>(4) Adult audience with mixed background</div>"
+                };
+
+            case 3:
+                return await ProcessStageAsync(history, 120, includeFeedback);
+            case 4:
+                return await ProcessStageAsync(history, 60, includeFeedback);
+            case 5:
+                return await ProcessStageAsync(history, 30, includeFeedback);
             case 6:
-                if (ValidateUserRespose(lastUserText.Text, new List<string> { "1", "2", "3", "4" }))
+                return await ProcessStageAsync(history, 120, includeFeedback, true);
+            case 7:
+                if (ValidateUserRespose(lastUserMessage, new List<string> { "1", "2", "3", "4" }))
                 {
-                    switch (lastUserText.Text)
+                    switch (lastUserMessage.Trim())
                     {
                         case "1":
                             history.WhichIsBetter = "Original";
@@ -258,35 +320,44 @@ public class HalfLifeController : ControllerBase
 
                     history.CurrentStage++;
 
-                    //await SaveToGoogleSheets(history);
-                    await SaveToSupabase(history, userId);
-
+                    await SaveResultsAsync(history, userId, includeFeedback);
 
                     _usageCounter.UpdateNumberOfUses(1);
 
-                    return new List<string> { "We’re done! Hope this was helpful. Now is a good time to further hone your skills at the science communication free online course at edX." };
+                    return new List<string>
+                    {
+                        "We’re done! Hope this was helpful. Now is a good time to further hone your skills at the science communication free online course at edX."
+                    };
                 }
-                else
+
+                return new List<string>
                 {
-                    return new List<string> { "Please enter your answer as single digit: " +
-                        "<div class='chat-option'>(1) My original text</div>" +
-                        "<div class='chat-option'>(2) My revised text</div>" +
-                        "<div class='chat-option'>(3) Neither</div>" +
-                        "<div class='chat-option'>(4) Both!</div>"};
-                }
+                    "Please enter your answer as single digit: " +
+                    "<div class='chat-option'>(1) My original text</div>" +
+                    "<div class='chat-option'>(2) My revised text</div>" +
+                    "<div class='chat-option'>(3) Neither</div>" +
+                    "<div class='chat-option'>(4) Both!</div>"
+                };
 
             default:
-                history.CurrentStage++;
-
-                return new List<string> {
-                    "Welcome to the Half-Life writing exercise! We're glad you're here.",
-                    "Before we dive into the writing process, could you please provide some insight into the science background of your intended audience? This will assist the AI in tailoring appropriate suggestions for your task:" +
-                    "<div class='chat-option'>(1)Elementary (primary) school level science (learned science until they were 12 years old)</div>" +
-                    "<div class='chat-option'>(2)Junior high school level science (learned science until they were 15 years old)</div>" +
-                    "<div class='chat-option'>(3)High school level science (learned science until they were 18 years old)</div>" +
-                    "<div class='chat-option'>(4)Adult audience with mixed background</div>",
-                };
+                history.CurrentStage = 0;
+                return await DetermineResponse(history, userId, includeFeedback);
         }
+    }
+
+    private async Task SaveResultsAsync(HalfLifeConversationHistory history, string userId, bool includeFeedback)
+    {
+        try
+        {
+            await SaveToSupabase(history, userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save HalfLife session to Supabase");
+        }
+
+        var sheetName = includeFeedback ? _fullFeedbackSheetName : _noFeedbackSheetName;
+        await SaveToGoogleSheetsAsync(history, sheetName, includeFeedback);
     }
 
     private async Task SaveToSupabase(HalfLifeConversationHistory  history, string userId)
@@ -298,7 +369,7 @@ public class HalfLifeController : ControllerBase
             UserId = isSaveUserData ? userId : null,
             TargetAudience = history.TargetAudience,
             StartTime = history.StartTime,
-            EndTime = DateTime.Now,
+            EndTime = DateTime.UtcNow,
             CopyPasteCheck = history.CopyPasteCheck,
             WhichIsBetter = history.WhichIsBetter,
 
@@ -348,7 +419,117 @@ public class HalfLifeController : ControllerBase
         }
     }
 
-    private async Task<List<string>> ProcessStageAsync(HalfLifeConversationHistory  history, int wordLimit, bool lastRound = false)
+    private async Task SaveToGoogleSheetsAsync(HalfLifeConversationHistory history, string sheetName, bool includeFeedback)
+    {
+        if (string.IsNullOrWhiteSpace(sheetName))
+        {
+            _logger.LogWarning("Google Sheets sheet name is not configured for this Half-Life variant.");
+            return;
+        }
+
+        try
+        {
+            var ip = GetClientIp();
+            var geoInfo = await GetGeoInfoFromIpAsync(ip);
+
+            var timestamp = DateTime.UtcNow;
+
+            var values = new List<object>
+            {
+                timestamp.ToString("yyyy-MM-dd"),
+                timestamp.ToString("HH:mm:ss"),
+                history.StudentName ?? string.Empty,
+                ip,
+                geoInfo.Country,
+                geoInfo.Region,
+                geoInfo.City,
+                history.TargetAudience ?? string.Empty,
+                history.CopyPasteCheck,
+                history.WhichIsBetter ?? string.Empty,
+                history.Text120First ?? string.Empty,
+                includeFeedback ? history.Text120FirstJargon ?? string.Empty : string.Empty,
+                includeFeedback ? history.Text120FirstGPT3 ?? string.Empty : string.Empty,
+                history.Text120FitrstTotalWords,
+                history.Text120FitrstRareWords,
+                history.Text120FitrstRareWordsPercentage,
+                history.Text120FitrstJargonScore,
+                history.Text60 ?? string.Empty,
+                includeFeedback ? history.Text60Jargon ?? string.Empty : string.Empty,
+                includeFeedback ? history.Text60GPT3 ?? string.Empty : string.Empty,
+                history.Text60TotalWords,
+                history.Text60RareWords,
+                history.Text60RareWordsPercentage,
+                history.Text60JargonScore,
+                history.Text30 ?? string.Empty,
+                includeFeedback ? history.Text30Jargon ?? string.Empty : string.Empty,
+                includeFeedback ? history.Text30GPT3 ?? string.Empty : string.Empty,
+                history.Text30TotalWords,
+                history.Text30RareWords,
+                history.Text30RareWordsPercentage,
+                history.Text30JargonScore,
+                history.Text120Last ?? string.Empty,
+                history.Text120LastTotalWords,
+                history.Text120LastRareWords,
+                history.Text120LastRareWordsPercentage,
+                history.Text120LastJargonScore
+            };
+
+            await _googleSheetsService.AppendRowAsync(sheetName, values);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save Half-Life interaction to Google Sheets");
+        }
+    }
+
+    private string GetClientIp()
+    {
+        var forwardedFor = HttpContext?.Request?.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(forwardedFor))
+        {
+            return forwardedFor.Split(',').First().Trim();
+        }
+
+        var realIp = HttpContext?.Request?.Headers["X-Real-IP"].FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(realIp))
+        {
+            return realIp;
+        }
+
+        return HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown";
+    }
+
+    private async Task<(string Country, string Region, string City)> GetGeoInfoFromIpAsync(string ip)
+    {
+        if (string.IsNullOrWhiteSpace(ip) || ip == "Unknown" || ip == "127.0.0.1" || ip == "::1")
+        {
+            return ("Unknown", "Unknown", "Unknown");
+        }
+
+        try
+        {
+            var response = await _client.GetStringAsync($"http://ip-api.com/json/{ip}?fields=status,country,regionName,city");
+            using var document = JsonDocument.Parse(response);
+            var root = document.RootElement;
+
+            if (root.TryGetProperty("status", out var statusElement) && statusElement.GetString() == "success")
+            {
+                var country = root.TryGetProperty("country", out var countryElement) ? countryElement.GetString() ?? "Unknown" : "Unknown";
+                var region = root.TryGetProperty("regionName", out var regionElement) ? regionElement.GetString() ?? "Unknown" : "Unknown";
+                var city = root.TryGetProperty("city", out var cityElement) ? cityElement.GetString() ?? "Unknown" : "Unknown";
+
+                return (country, region, city);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Unable to resolve geo information for IP {Ip}", ip);
+        }
+
+        return ("Unknown", "Unknown", "Unknown");
+    }
+
+    private async Task<List<string>> ProcessStageAsync(HalfLifeConversationHistory history, int wordLimit, bool includeFeedback, bool lastRound = false)
     {
         var text = history.Messages.LastOrDefault(x => x.IsStudent)?.Text ?? string.Empty;
         var response = ValidateWordCount(text, wordLimit);
@@ -359,6 +540,11 @@ public class HalfLifeController : ControllerBase
         }
 
         history.CurrentStage++;
+
+        if (!includeFeedback)
+        {
+            return ProcessStageWithoutFeedback(history, wordLimit, text, lastRound);
+        }
 
         TextGrading.Lang = Language.English2021_2024;
         var articleGradingInfo = TextGrading.AnalyzeSingleText(text.Trim(), _env);
@@ -379,7 +565,7 @@ public class HalfLifeController : ControllerBase
         {
             var wordsWithSyns = string.Join(", ",
                 articleGradingInfo.RareWordsSyns.Keys.Select(w =>
-                    $"<span class=\"rare-word\" title=\"Optional replacemets: {GenerateReplacementSyns(articleGradingInfo, w)}.\">{w}</span>"
+                    $"<span class="rare-word" title="Optional replacemets: {GenerateReplacementSyns(articleGradingInfo, w)}.">{w}</span>"
                 )
             );
 
@@ -415,7 +601,8 @@ public class HalfLifeController : ControllerBase
                     history.Text120LastTotalWords = articleGradingInfo.CleanedWords.Count;
                     history.Text120LastRareWordsPercentage = articleGradingInfo.RareWords.Count / (double)articleGradingInfo.CleanedWords.Count;
 
-                    return new List<string> {
+                    return new List<string>
+                    {
                         "Let’s see if this was effective.",
                         "This is your original text:",
                         originalTxt,
@@ -456,6 +643,81 @@ public class HalfLifeController : ControllerBase
         return responses;
     }
 
+    private List<string> ProcessStageWithoutFeedback(HalfLifeConversationHistory history, int wordLimit, string text, bool lastRound)
+    {
+        var responses = new List<string>();
+
+        switch (wordLimit)
+        {
+            case 120:
+                if (!lastRound)
+                {
+                    responses.Add("Thank you for sharing your explanation.");
+                    responses.Add("Now please tell me again what you do and why it is important - but this time use only 60 words! (45-75)");
+
+                    history.Text120First = text;
+                    history.Text120FirstGPT3 = string.Empty;
+                    history.Text120FirstJargon = string.Empty;
+                    history.Text120FitrstJargonScore = 0;
+                    history.Text120FitrstRareWords = 0;
+                    history.Text120FitrstTotalWords = CountWords(text);
+                    history.Text120FitrstRareWordsPercentage = 0;
+                }
+                else
+                {
+                    var originalTxt = history.Text120First;
+                    var revisedTxt = text;
+
+                    history.Text120Last = text;
+                    history.Text120LastJargonScore = 0;
+                    history.Text120LastRareWords = 0;
+                    history.Text120LastTotalWords = CountWords(text);
+                    history.Text120LastRareWordsPercentage = 0;
+
+                    return new List<string>
+                    {
+                        "Let’s see if this was effective.",
+                        "This is your original text:",
+                        originalTxt,
+                        "And this is your revised text:",
+                        revisedTxt,
+                        "Which one do you think is better suited for a general audience? " +
+                        "<div class='chat-option'>(1) My original text</div>" +
+                        "<div class='chat-option'>(2) My revised text</div>" +
+                        "<div class='chat-option'>(3) Neither</div>" +
+                        "<div class='chat-option'>(4) Both!</div>"
+                    };
+                }
+                break;
+            case 60:
+                responses.Add("Nice job tightening your explanation.");
+                responses.Add("OK, now let's take it to the next level!<br />Please tell me what you do and why in only 30 words (20-40).");
+
+                history.Text60 = text;
+                history.Text60GPT3 = string.Empty;
+                history.Text60Jargon = string.Empty;
+                history.Text60JargonScore = 0;
+                history.Text60RareWords = 0;
+                history.Text60TotalWords = CountWords(text);
+                history.Text60RareWordsPercentage = 0;
+                break;
+            case 30:
+                responses.Add("That was concise!");
+                responses.Add("You now get all of your 120 words back. Please tell me what you study and why it is important using 120 words.");
+
+                history.Text30 = text;
+                history.Text30GPT3 = string.Empty;
+                history.Text30Jargon = string.Empty;
+                history.Text30JargonScore = 0;
+                history.Text30RareWords = 0;
+                history.Text30TotalWords = CountWords(text);
+                history.Text30RareWordsPercentage = 0;
+                break;
+        }
+
+        return responses;
+    }
+
     private string GenerateReplacementSyns(ArticleGradingInfo articleGradingInfo, string word)
     {
         if (articleGradingInfo.RareWordsSyns[word].Count == 0)
@@ -468,9 +730,14 @@ public class HalfLifeController : ControllerBase
         return string.Join(", ", syns);
     }
 
+    private int CountWords(string text)
+    {
+        return text.Split(new char[] { ' ', '\t', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
+    }
+
     private string ValidateWordCount(string text, int wordLimit)
     {
-        int wordCount = text.Split(new char[] { ' ', '\t', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
+        int wordCount = CountWords(text);
         Debug.WriteLine($"text: " + text);
 
         if (wordCount < wordCountRanges[wordLimit].min || wordCount > wordCountRanges[wordLimit].max)
@@ -482,6 +749,11 @@ public class HalfLifeController : ControllerBase
 
     private bool ValidateUserRespose(string lastUserText, List<string> possibleResponses)
     {
+        if (string.IsNullOrWhiteSpace(lastUserText))
+        {
+            return false;
+        }
+
         return possibleResponses.Any(r => r == lastUserText.Trim());
     }
 

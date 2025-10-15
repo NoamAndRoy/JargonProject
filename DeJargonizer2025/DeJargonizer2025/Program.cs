@@ -23,6 +23,7 @@ try
 
     builder.Services.AddSingleton<UsageCounter>();
     builder.Services.AddSingleton<GPTApiClient>();
+    builder.Services.AddSingleton<GoogleSheetsService>();
 
     var supabaseClient = new SupabaseClient();
     supabaseClient.Init().GetAwaiter().GetResult();

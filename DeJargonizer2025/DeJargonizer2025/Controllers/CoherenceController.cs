@@ -1,32 +1,36 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.Http;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
+using JargonProject.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-public class CoherenceController : ApiController
+[ApiController]
+[Route("api/[controller]")]
+public class CoherenceController : ControllerBase
 {
     private static readonly string[] Scopes = { SheetsService.Scope.Spreadsheets };
-    private static readonly string ApplicationName = "coherence-chatbot";
-    private static readonly string SpreadsheetId = "1n0uVf-ReplaceWithActualId"; // TODO: replace with the actual Google Sheet ID
-    private static readonly string SheetName = "results";
 
-    private readonly HttpClient client;
-    private readonly SupabaseClient supabaseClient;
-    private readonly string apiUrl = "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
-    private readonly string apiKey = "openapi-secret";
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly SupabaseClient _supabaseClient;
+    private readonly ILogger<CoherenceController> _logger;
+    private readonly string _apiUrl;
+    private readonly string _apiKey;
+    private readonly string _applicationName;
+    private readonly string _spreadsheetId;
+    private readonly string _sheetName;
 
     public class ConversationHistory
     {
@@ -88,31 +92,45 @@ public class CoherenceController : ApiController
         public int? MinRows { get; set; }
     }
 
-    public CoherenceController()
+    public CoherenceController(
+        IHttpClientFactory httpClientFactory,
+        SupabaseClient supabaseClient,
+        ILogger<CoherenceController> logger,
+        IConfiguration configuration)
     {
-        var handler = new HttpClientHandler
-        {
-            SslProtocols = System.Security.Authentication.SslProtocols.Tls12
-        };
-        handler.ServerCertificateCustomValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+        _httpClientFactory = httpClientFactory;
+        _supabaseClient = supabaseClient;
+        _logger = logger;
 
-        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        _applicationName = configuration["CoherenceChatbot:ApplicationName"]
+            ?? "coherence-chatbot";
 
-        client = new HttpClient(handler);
-        client.DefaultRequestHeaders.ConnectionClose = false;
+        _spreadsheetId = configuration["CoherenceChatbot:SpreadsheetId"]
+            ?? Environment.GetEnvironmentVariable("COHERENCE_SPREADSHEET_ID")
+            ?? string.Empty;
 
-        supabaseClient = (SupabaseClient)GlobalConfiguration.Configuration.Properties["SupabaseClient"];
+        _sheetName = configuration["CoherenceChatbot:SheetName"]
+            ?? Environment.GetEnvironmentVariable("COHERENCE_SHEET_NAME")
+            ?? "results";
+
+        _apiUrl = configuration["CoherenceChatbot:OpenAiUrl"]
+            ?? Environment.GetEnvironmentVariable("COHERENCE_OPENAI_URL")
+            ?? "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
+
+        _apiKey = configuration["CoherenceChatbot:OpenAiKey"]
+            ?? Environment.GetEnvironmentVariable("COHERENCE_OPENAI_KEY")
+            ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+            ?? string.Empty;
     }
 
     [HttpPost]
-    public async Task<IHttpActionResult> ProcessConversation([FromBody] ConversationHistory history)
+    public async Task<IActionResult> ProcessConversation([FromBody] ConversationHistory history)
     {
         try
         {
-            history.Messages = history.Messages ?? new List<Message>();
+            history.Messages ??= new List<Message>();
 
-            var authHeader = HttpContext.Current.Request.Headers["Authorization"];
-            var userId = supabaseClient.GetUserId(authHeader);
+            var userId = await HttpContext.TryGetUserIdAsync();
 
             var responseMessages = await DetermineResponse(history, userId);
 
@@ -127,11 +145,12 @@ public class CoherenceController : ApiController
         }
         catch (Exception ex)
         {
-            return InternalServerError(ex);
+            _logger.LogError(ex, "Error occurred while processing coherence conversation");
+            return StatusCode(500, "An error occurred while processing your request.");
         }
     }
 
-    private async Task<List<BotMessage>> DetermineResponse(ConversationHistory history, string userId)
+    private async Task<List<BotMessage>> DetermineResponse(ConversationHistory history, string? userId)
     {
         var lastStudentMessage = history.Messages.LastOrDefault(m => m.IsStudent)?.Text?.Trim();
 
@@ -910,7 +929,8 @@ public class CoherenceController : ApiController
         promptBuilder.AppendLine("Provide only 2-3 sentences of feedback.");
 
         var request = BuildOpenAiRequest(promptBuilder.ToString());
-        var response = await client.SendAsync(request);
+        var httpClient = _httpClientFactory.CreateClient("CustomClient");
+        var response = await httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
@@ -930,26 +950,43 @@ public class CoherenceController : ApiController
             presence_penalty = 0
         };
 
-        var request = new HttpRequestMessage(HttpMethod.Post, apiUrl);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        var request = new HttpRequestMessage(HttpMethod.Post, _apiUrl);
+        if (string.IsNullOrWhiteSpace(_apiKey))
+        {
+            throw new InvalidOperationException("OpenAI API key is not configured.");
+        }
+
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
         request.Content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
         return request;
     }
 
-    private async Task SaveToGoogleSheets(ConversationHistory history, string userId)
+    private async Task SaveToGoogleSheets(ConversationHistory history, string? userId)
     {
+        if (string.IsNullOrWhiteSpace(_spreadsheetId))
+        {
+            _logger.LogInformation("Coherence spreadsheet id not configured. Skipping export.");
+            return;
+        }
+
         try
         {
-            var isSaveUserData = await supabaseClient.getIsSaveUserData(userId);
-            if (!isSaveUserData)
+            if (string.IsNullOrWhiteSpace(userId) || !await _supabaseClient.getIsSaveUserData(userId))
             {
+                return;
+            }
+
+            var credential = GetCredentials();
+            if (credential == null)
+            {
+                _logger.LogWarning("Google credentials unavailable. Unable to persist coherence session.");
                 return;
             }
 
             var service = new SheetsService(new BaseClientService.Initializer
             {
-                HttpClientInitializer = GetCredentials(),
-                ApplicationName = ApplicationName,
+                HttpClientInitializer = credential,
+                ApplicationName = _applicationName,
             });
 
             var ip = GetIp();
@@ -960,8 +997,8 @@ public class CoherenceController : ApiController
                 DateTime.UtcNow.ToString("yyyy-MM-dd"),
                 DateTime.UtcNow.ToString("HH:mm:ss"),
                 history.isResearch ? "Research" : "Regular",
-                isSaveUserData ? userId : null,
-                isSaveUserData ? history.ParticipantName : null,
+                userId,
+                history.ParticipantName,
                 ip,
                 geo.Country,
                 geo.Region,
@@ -995,61 +1032,80 @@ public class CoherenceController : ApiController
                 Values = new List<IList<object>> { row }
             };
 
-            var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, $"{SheetName}!A:AD");
+            var appendRequest = service.Spreadsheets.Values.Append(valueRange, _spreadsheetId, $"{_sheetName}!A:AD");
             appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
-            appendRequest.Execute();
+            await appendRequest.ExecuteAsync();
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error saving to Google Sheets: {ex.Message}");
+            _logger.LogError(ex, "Error saving coherence session to Google Sheets");
         }
     }
 
     private string GetIp()
     {
-        var ip = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-        if (string.IsNullOrEmpty(ip))
+        var forwarded = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(forwarded))
         {
-            ip = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
+            return forwarded.Split(',').First().Trim();
         }
 
-        if (string.IsNullOrEmpty(ip))
-        {
-            ip = HttpContext.Current.Request.UserHostAddress;
-        }
-
-        return ip ?? string.Empty;
+        return HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
     }
 
     private async Task<(string Country, string Region, string City)> GetGeoInfoFromIp(string ip)
     {
+        if (string.IsNullOrWhiteSpace(ip))
+        {
+            return ("Unknown", "Unknown", "Unknown");
+        }
+
         try
         {
-            using (var geoClient = new HttpClient())
-            {
-                var response = await geoClient.GetStringAsync($"http://ip-api.com/json/{ip}?fields=status,country,regionName,city");
-                var json = JObject.Parse(response);
+            var geoClient = _httpClientFactory.CreateClient("CustomClient");
+            var response = await geoClient.GetStringAsync($"http://ip-api.com/json/{ip}?fields=status,country,regionName,city");
+            var json = JObject.Parse(response);
 
-                if (json["status"]?.ToString() == "success")
-                {
-                    return (
-                        json["country"]?.ToString() ?? "Unknown",
-                        json["regionName"]?.ToString() ?? "Unknown",
-                        json["city"]?.ToString() ?? "Unknown");
-                }
+            if (json["status"]?.ToString() == "success")
+            {
+                return (
+                    json["country"]?.ToString() ?? "Unknown",
+                    json["regionName"]?.ToString() ?? "Unknown",
+                    json["city"]?.ToString() ?? "Unknown");
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error fetching geo info: {ex.Message}");
+            _logger.LogDebug(ex, "Error fetching geo info");
         }
 
         return ("Unknown", "Unknown", "Unknown");
     }
 
-    private GoogleCredential GetCredentials()
+    private GoogleCredential? GetCredentials()
     {
-        string path = HttpContext.Current.Server.MapPath(@"~\half-life-dejargonizer-f4e89fe2bc96.json");
-        return GoogleCredential.FromFile(path).CreateScoped(Scopes);
+        try
+        {
+            var credentialPath = Environment.GetEnvironmentVariable("COHERENCE_GOOGLE_CREDENTIALS_PATH")
+                ?? Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
+
+            GoogleCredential credential;
+
+            if (!string.IsNullOrWhiteSpace(credentialPath) && File.Exists(credentialPath))
+            {
+                credential = GoogleCredential.FromFile(credentialPath);
+            }
+            else
+            {
+                credential = GoogleCredential.GetApplicationDefault();
+            }
+
+            return credential.CreateScoped(Scopes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load Google credentials for coherence chatbot");
+            return null;
+        }
     }
 }

@@ -357,7 +357,6 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\GroupGradingController.cs" />
     <Compile Include="Controllers\EthicsController.cs" />
-    <Compile Include="Controllers\CoherenceController.cs" />
     <Compile Include="Controllers\PersuasiveController.cs" />
     <Compile Include="Controllers\HalfLifeController.cs" />
     <Compile Include="Controllers\HebrewController.cs" />

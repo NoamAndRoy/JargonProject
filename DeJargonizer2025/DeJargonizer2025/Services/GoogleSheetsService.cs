@@ -11,14 +11,14 @@ public class GoogleSheetsService
 {
     private readonly ILogger<GoogleSheetsService> _logger;
     private readonly Lazy<SheetsService?> _sheetsService;
-    private readonly string? _spreadsheetId;
+    private readonly string? _defaultSpreadsheetId;
     private readonly string _applicationName;
 
     public GoogleSheetsService(ILogger<GoogleSheetsService> logger, IConfiguration configuration)
     {
         _logger = logger;
-        _spreadsheetId = Environment.GetEnvironmentVariable("HALFLIFE_SPREADSHEET_ID")
-                         ?? configuration["GoogleSheets:SpreadsheetId"];
+        _defaultSpreadsheetId = Environment.GetEnvironmentVariable("HALFLIFE_SPREADSHEET_ID")
+                                 ?? configuration["GoogleSheets:SpreadsheetId"];
         _applicationName = configuration["GoogleSheets:ApplicationName"] ?? "half-life-dejargonizer";
 
         var credentialPath = Environment.GetEnvironmentVariable("HALFLIFE_GOOGLE_CREDENTIALS_PATH")
@@ -29,12 +29,6 @@ public class GoogleSheetsService
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(_spreadsheetId))
-                {
-                    _logger.LogWarning("Google Sheets spreadsheet id is not configured. Skipping initialization.");
-                    return null;
-                }
-
                 GoogleCredential credential;
 
                 if (!string.IsNullOrWhiteSpace(credentialPath))
@@ -62,7 +56,10 @@ public class GoogleSheetsService
         });
     }
 
-    public async Task AppendRowAsync(string sheetName, IList<object> values, CancellationToken cancellationToken = default)
+    public Task AppendRowAsync(string sheetName, IList<object> values, CancellationToken cancellationToken = default)
+        => AppendRowAsync(_defaultSpreadsheetId, sheetName, values, cancellationToken);
+
+    public async Task AppendRowAsync(string? spreadsheetId, string sheetName, IList<object> values, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(sheetName))
         {
@@ -72,9 +69,15 @@ public class GoogleSheetsService
 
         var service = _sheetsService.Value;
 
-        if (service == null || string.IsNullOrWhiteSpace(_spreadsheetId))
+        if (service == null)
         {
             _logger.LogWarning("Google Sheets service is not available. Row will not be written.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(spreadsheetId))
+        {
+            _logger.LogWarning("Spreadsheet id not provided. Row will not be written.");
             return;
         }
 
@@ -86,7 +89,7 @@ public class GoogleSheetsService
                 Values = new List<IList<object>> { values }
             };
 
-            var appendRequest = service.Spreadsheets.Values.Append(valueRange, _spreadsheetId, range);
+            var appendRequest = service.Spreadsheets.Values.Append(valueRange, spreadsheetId, range);
             appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
             appendRequest.InsertDataOption = SpreadsheetsResource.ValuesResource.AppendRequest.InsertDataOptionEnum.INSERTROWS;
 

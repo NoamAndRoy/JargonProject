@@ -1,16 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using Google.Apis.Sheets.v4;
-using Google.Apis.Sheets.v4.Data;
 using JargonProject.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -22,14 +16,12 @@ using Newtonsoft.Json.Linq;
 [Route("api/[controller]")]
 public class CriticalThinkingController : ControllerBase
 {
-    private static readonly string[] Scopes = { SheetsService.Scope.Spreadsheets };
-
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly SupabaseClient _supabaseClient;
     private readonly ILogger<CriticalThinkingController> _logger;
+    private readonly GoogleSheetsService _googleSheetsService;
     private readonly string _apiUrl;
     private readonly string _apiKey;
-    private readonly string _applicationName;
     private readonly string _spreadsheetId;
     private readonly string _sheetName;
 
@@ -83,14 +75,13 @@ public class CriticalThinkingController : ControllerBase
         IHttpClientFactory httpClientFactory,
         SupabaseClient supabaseClient,
         ILogger<CriticalThinkingController> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        GoogleSheetsService googleSheetsService)
     {
         _httpClientFactory = httpClientFactory;
         _supabaseClient = supabaseClient;
         _logger = logger;
-
-        _applicationName = configuration["CriticalThinkingChatbot:ApplicationName"]
-            ?? "critical-thinking-chatbot";
+        _googleSheetsService = googleSheetsService;
 
         _spreadsheetId = configuration["CriticalThinkingChatbot:SpreadsheetId"]
             ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SPREADSHEET_ID")
@@ -650,25 +641,18 @@ public class CriticalThinkingController : ControllerBase
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(_sheetName))
+        {
+            _logger.LogInformation("Critical thinking sheet name not configured. Skipping export.");
+            return;
+        }
+
         try
         {
             if (string.IsNullOrWhiteSpace(userId) || !await _supabaseClient.getIsSaveUserData(userId))
             {
                 return;
             }
-
-            var credential = GetCredentials();
-            if (credential == null)
-            {
-                _logger.LogWarning("Google credentials unavailable. Unable to persist critical-thinking session.");
-                return;
-            }
-
-            var service = new SheetsService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = _applicationName,
-            });
 
             var ip = GetIp();
             var geo = await GetGeoInfoFromIp(ip);
@@ -703,14 +687,7 @@ public class CriticalThinkingController : ControllerBase
                 history.ReflectionOpenResponse
             };
 
-            var valueRange = new ValueRange
-            {
-                Values = new List<IList<object>> { row }
-            };
-
-            var appendRequest = service.Spreadsheets.Values.Append(valueRange, _spreadsheetId, $"{_sheetName}!A:AB");
-            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
-            await appendRequest.ExecuteAsync();
+            await _googleSheetsService.AppendRowAsync(_spreadsheetId, _sheetName, row);
         }
         catch (Exception ex)
         {
@@ -758,30 +735,4 @@ public class CriticalThinkingController : ControllerBase
         return ("Unknown", "Unknown", "Unknown");
     }
 
-    private GoogleCredential? GetCredentials()
-    {
-        try
-        {
-            var credentialPath = Environment.GetEnvironmentVariable("CRITICAL_THINKING_GOOGLE_CREDENTIALS_PATH")
-                ?? Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
-
-            GoogleCredential credential;
-
-            if (!string.IsNullOrWhiteSpace(credentialPath) && File.Exists(credentialPath))
-            {
-                credential = GoogleCredential.FromFile(credentialPath);
-            }
-            else
-            {
-                credential = GoogleCredential.GetApplicationDefault();
-            }
-
-            return credential.CreateScoped(Scopes);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to load Google credentials for critical-thinking chatbot");
-            return null;
-        }
-    }
 }

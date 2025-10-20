@@ -298,7 +298,7 @@ public class CriticalThinkingController : ControllerBase
                 history.CurrentStage = 3;
                 return new List<string>
                 {
-                    "1. Please answer the question as best as possible in 1-2 sentences: The main purpose of this text is . . . (Here you are trying to state as accurately as possible your purpose for writing the article. What were you trying to accomplish?)",
+                    "Question 1: Please answer the question as best as possible in 1-2 sentences: The main purpose of this text is . . . (Here you are trying to state as accurately as possible your purpose for writing the article. What were you trying to accomplish?)",
                     "Answer (30-80 words)"
                 };
 
@@ -359,7 +359,7 @@ public class CriticalThinkingController : ControllerBase
                 history.CurrentStage = 5;
                 return new List<string>
                 {
-                    "2. Please answer the question as best as possible in 1-2 sentences: The key research question(s) (whether stated or unstated) at issue for this research is/are . . . (Your goal is to figure out the key question that was in your mind when you wrote the article)",
+                    "Question 2: Please answer the question as best as possible in 1-2 sentences: The key research question(s) (whether stated or unstated) at issue for this research is/are . . . (Your goal is to figure out the key question that was in your mind when you wrote the article)",
                     "Answer (30-80 words)"
                 };
 
@@ -420,7 +420,7 @@ public class CriticalThinkingController : ControllerBase
                 history.CurrentStage = 7;
                 return new List<string>
                 {
-                    "3. Please answer the question as best as possible in 1-2 sentences: The most important information in this text is . . . (You want to identify the key information you used, or presupposed, in the full article you are writing to support your main arguments. Here you are looking for facts, experiences, data you are using to support your conclusions).",
+                    "Question 3: Please answer the question as best as possible in 1-2 sentences: The most important information in this text is . . . (You want to identify the key information you used, or presupposed, in the full article you are writing to support your main arguments. Here you are looking for facts, experiences, data you are using to support your conclusions).",
                     "Answer (30-100 words)"
                 };
 
@@ -481,7 +481,7 @@ public class CriticalThinkingController : ControllerBase
                 history.CurrentStage = 9;
                 return new List<string>
                 {
-                    "4. Please answer the question as best as possible in 1-2 sentences: The main conclusion(s) in this text is/are. . . (You want to identify the most important conclusions that you came to and presented/will present in the full article you are writing).",
+                    "Question 4: Please answer the question as best as possible in 1-2 sentences: The main conclusion(s) in this text is/are. . . (You want to identify the most important conclusions that you came to and presented/will present in the full article you are writing).",
                     "Answer (30-90 words)"
                 };
 
@@ -542,7 +542,7 @@ public class CriticalThinkingController : ControllerBase
                 history.CurrentStage = 11;
                 return new List<string>
                 {
-                    "5. Please answer the question as best as possible in 1-2 sentences: What is the significance of the text in the broader context? (Ask yourself: How does this work contribute to the field, and why does it matter?).",
+                    "Question 5: Please answer the question as best as possible in 1-2 sentences: What is the significance of the text in the broader context? (Ask yourself: How does this work contribute to the field, and why does it matter?).",
                     "Answer (30-80 words)"
                 };
 
@@ -625,7 +625,7 @@ public class CriticalThinkingController : ControllerBase
                 {
                     "Thank you! We hope you learned about improving your academic texts with the help of critical thinking!",
                     "The final step is to answer four short, close-ended reflection questions about the chatbot use and one optional open question. For each statement, please select an option from a 5-point Likert scale where 1 = strongly disagree and 5 = strongly agree.",
-                    "Reflection 1: The chatbot was friendly and easy to interact with. Answer: choose one 1- strongly disagree  2- disagree 3- Neutral 4- agree 5- strongly agree"
+                    BuildLikertOptionsMessage("Reflection 1: The chatbot was friendly and easy to interact with.")
                 };
 
             case 14:
@@ -638,7 +638,7 @@ public class CriticalThinkingController : ControllerBase
                 history.CurrentStage = 15;
                 return new List<string>
                 {
-                    "Reflection 2: I found the chatbot challenging in a way that stimulated my critical thinking. Answer: choose one 1- strongly disagree  2- disagree 3- Neutral 4- agree 5- strongly agree"
+                    BuildLikertOptionsMessage("Reflection 2: I found the chatbot challenging in a way that stimulated my critical thinking.")
                 };
 
             case 15:
@@ -651,7 +651,7 @@ public class CriticalThinkingController : ControllerBase
                 history.CurrentStage = 16;
                 return new List<string>
                 {
-                    "Reflection 3: The chatbot was useful for improving the quality of my writing. Answer: choose one 1- strongly disagree  2- disagree 3- Neutral 4- agree 5- strongly agree"
+                    BuildLikertOptionsMessage("Reflection 3: The chatbot was useful for improving the quality of my writing.")
                 };
 
             case 16:
@@ -664,7 +664,7 @@ public class CriticalThinkingController : ControllerBase
                 history.CurrentStage = 17;
                 return new List<string>
                 {
-                    "Reflection 4: The chatbot made the task more difficult than it needed to be. Answer: choose one 1- strongly disagree  2- disagree 3- Neutral 4- agree 5- strongly agree"
+                    BuildLikertOptionsMessage("Reflection 4: The chatbot made the task more difficult than it needed to be.")
                 };
 
             case 17:
@@ -704,6 +704,24 @@ public class CriticalThinkingController : ControllerBase
                     "If you need further assistance, feel free to start a new conversation."
                 };
         }
+    }
+
+    private string BuildLikertOptionsMessage(string prefix = null)
+    {
+        var builder = new StringBuilder();
+        if (!string.IsNullOrEmpty(prefix))
+        {
+            builder.Append(prefix).Append(" ");
+        }
+
+        builder.Append("Please type one of the following options:" +
+                       "<div class='chat-option'>(1) Strongly disagree</div>" +
+                       "<div class='chat-option'>(2) Disagree</div>" +
+                       "<div class='chat-option'>(3) Neutral</div>" +
+                       "<div class='chat-option'>(4) Agree</div>" +
+                       "<div class='chat-option'>(5) Strongly agree</div>");
+
+        return builder.ToString();
     }
 
     private string ValidateWordCount(string text, int min, int max)

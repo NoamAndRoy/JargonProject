@@ -26,7 +26,8 @@ public class CriticalThinkingController : ControllerBase
     private readonly GoogleSheetsService _googleSheetsService;
     private readonly GPTApiClient _gptApiClient;
     private readonly string _spreadsheetId;
-    private readonly string _sheetName;
+    private readonly string _feedbackSheetName;
+    private readonly string _noFeedbackSheetName;
 
     public class ConversationHistory
     {
@@ -68,6 +69,7 @@ public class CriticalThinkingController : ControllerBase
         public string ReflectionOpenResponse { get; set; }
 
         public string TaskId { get; set; }
+        public bool FeedbackEnabled { get; set; }
     }
 
     public class Message
@@ -194,8 +196,17 @@ public class CriticalThinkingController : ControllerBase
             ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SPREADSHEET_ID")
             ?? string.Empty;
 
-        _sheetName = configuration["CriticalThinkingChatbot:SheetName"]
-            ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SHEET_NAME")
+        var defaultSheetName = configuration["CriticalThinkingChatbot:SheetName"]
+            ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SHEET_NAME");
+
+        _feedbackSheetName = configuration["CriticalThinkingChatbot:SheetNameWithFeedback"]
+            ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SHEET_NAME_WITH_FEEDBACK")
+            ?? defaultSheetName
+            ?? "results";
+
+        _noFeedbackSheetName = configuration["CriticalThinkingChatbot:SheetNameWithoutFeedback"]
+            ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SHEET_NAME_NO_FEEDBACK")
+            ?? defaultSheetName
             ?? "results";
     }
 
@@ -245,6 +256,7 @@ public class CriticalThinkingController : ControllerBase
 
     private async Task<List<string>> DetermineResponse(ConversationHistory history, string? userId, bool includeFeedback)
     {
+        history.FeedbackEnabled = includeFeedback;
         var lastStudentMessage = history.Messages.LastOrDefault(m => m.IsStudent)?.Text?.Trim();
 
         switch (history.CurrentStage)
@@ -700,7 +712,7 @@ public class CriticalThinkingController : ControllerBase
 
                 if (history.isResearch)
                 {
-                    await SaveToGoogleSheets(history, userId);
+                    await SaveToGoogleSheets(history, userId, includeFeedback);
                 }
                 else
                 {
@@ -878,7 +890,7 @@ public class CriticalThinkingController : ControllerBase
         return null;
     }
 
-    private async Task SaveToGoogleSheets(ConversationHistory history, string? userId)
+    private async Task SaveToGoogleSheets(ConversationHistory history, string? userId, bool includeFeedback)
     {
         if (string.IsNullOrWhiteSpace(_spreadsheetId))
         {
@@ -886,7 +898,9 @@ public class CriticalThinkingController : ControllerBase
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(_sheetName))
+        var sheetName = includeFeedback ? _feedbackSheetName : _noFeedbackSheetName;
+
+        if (string.IsNullOrWhiteSpace(sheetName))
         {
             _logger.LogInformation("Critical thinking sheet name not configured. Skipping export.");
             return;
@@ -932,7 +946,7 @@ public class CriticalThinkingController : ControllerBase
                 history.ReflectionOpenResponse
             };
 
-            await _googleSheetsService.AppendRowAsync(_spreadsheetId, _sheetName, row);
+            await _googleSheetsService.AppendRowAsync(_spreadsheetId, sheetName, row);
         }
         catch (Exception ex)
         {

@@ -27,7 +27,8 @@ public class CoherenceController : ControllerBase
     private readonly GoogleSheetsService _googleSheetsService;
     private readonly GPTApiClient _gptApiClient;
     private readonly string _spreadsheetId;
-    private readonly string _sheetName;
+    private readonly string _feedbackSheetName;
+    private readonly string _noFeedbackSheetName;
 
     public class ConversationHistory
     {
@@ -74,6 +75,7 @@ public class CoherenceController : ControllerBase
         public string ReflectionOpenResponse { get; set; }
 
         public string TaskId { get; set; }
+        public bool FeedbackEnabled { get; set; }
     }
 
     public class Message
@@ -225,8 +227,17 @@ public class CoherenceController : ControllerBase
             ?? Environment.GetEnvironmentVariable("COHERENCE_SPREADSHEET_ID")
             ?? string.Empty;
 
-        _sheetName = configuration["CoherenceChatbot:SheetName"]
-            ?? Environment.GetEnvironmentVariable("COHERENCE_SHEET_NAME")
+        var defaultSheetName = configuration["CoherenceChatbot:SheetName"]
+            ?? Environment.GetEnvironmentVariable("COHERENCE_SHEET_NAME");
+
+        _feedbackSheetName = configuration["CoherenceChatbot:SheetNameWithFeedback"]
+            ?? Environment.GetEnvironmentVariable("COHERENCE_SHEET_NAME_WITH_FEEDBACK")
+            ?? defaultSheetName
+            ?? "results";
+
+        _noFeedbackSheetName = configuration["CoherenceChatbot:SheetNameWithoutFeedback"]
+            ?? Environment.GetEnvironmentVariable("COHERENCE_SHEET_NAME_NO_FEEDBACK")
+            ?? defaultSheetName
             ?? "results";
     }
 
@@ -286,6 +297,7 @@ public class CoherenceController : ControllerBase
 
     private async Task<List<BotMessage>> DetermineResponse(ConversationHistory history, string? userId, bool includeFeedback)
     {
+        history.FeedbackEnabled = includeFeedback;
         var lastStudentMessage = history.Messages.LastOrDefault(m => m.IsStudent)?.Text?.Trim();
 
         var greetingsInstructions = new List<BotMessage>
@@ -1023,7 +1035,7 @@ public class CoherenceController : ControllerBase
 
                 if (history.isResearch)
                 {
-                    await SaveToGoogleSheets(history, userId);
+                    await SaveToGoogleSheets(history, userId, includeFeedback);
                 }
                 else
                 {
@@ -1311,7 +1323,7 @@ public class CoherenceController : ControllerBase
         return null;
     }
 
-    private async Task SaveToGoogleSheets(ConversationHistory history, string? userId)
+    private async Task SaveToGoogleSheets(ConversationHistory history, string? userId, bool includeFeedback)
     {
         if (string.IsNullOrWhiteSpace(_spreadsheetId))
         {
@@ -1319,7 +1331,9 @@ public class CoherenceController : ControllerBase
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(_sheetName))
+        var sheetName = includeFeedback ? _feedbackSheetName : _noFeedbackSheetName;
+
+        if (string.IsNullOrWhiteSpace(sheetName))
         {
             _logger.LogInformation("Coherence sheet name not configured. Skipping export.");
             return;
@@ -1365,7 +1379,7 @@ public class CoherenceController : ControllerBase
                 history.ReflectionOpenResponse
             };
 
-            await _googleSheetsService.AppendRowAsync(_spreadsheetId, _sheetName, row);
+            await _googleSheetsService.AppendRowAsync(_spreadsheetId, sheetName, row);
         }
         catch (Exception ex)
         {

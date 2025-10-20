@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using DeJargonizer2025.Helpers;
 using JargonProject.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -20,8 +20,7 @@ public class CoherenceController : ControllerBase
     private readonly SupabaseClient _supabaseClient;
     private readonly ILogger<CoherenceController> _logger;
     private readonly GoogleSheetsService _googleSheetsService;
-    private readonly string _apiUrl;
-    private readonly string _apiKey;
+    private readonly GPTApiClient _gptApiClient;
     private readonly string _spreadsheetId;
     private readonly string _sheetName;
 
@@ -90,12 +89,14 @@ public class CoherenceController : ControllerBase
         SupabaseClient supabaseClient,
         ILogger<CoherenceController> logger,
         IConfiguration configuration,
-        GoogleSheetsService googleSheetsService)
+        GoogleSheetsService googleSheetsService,
+        GPTApiClient gptApiClient)
     {
         _httpClientFactory = httpClientFactory;
         _supabaseClient = supabaseClient;
         _logger = logger;
         _googleSheetsService = googleSheetsService;
+        _gptApiClient = gptApiClient;
 
         _spreadsheetId = configuration["CoherenceChatbot:SpreadsheetId"]
             ?? Environment.GetEnvironmentVariable("COHERENCE_SPREADSHEET_ID")
@@ -104,15 +105,6 @@ public class CoherenceController : ControllerBase
         _sheetName = configuration["CoherenceChatbot:SheetName"]
             ?? Environment.GetEnvironmentVariable("COHERENCE_SHEET_NAME")
             ?? "results";
-
-        _apiUrl = configuration["CoherenceChatbot:OpenAiUrl"]
-            ?? Environment.GetEnvironmentVariable("COHERENCE_OPENAI_URL")
-            ?? "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
-
-        _apiKey = configuration["CoherenceChatbot:OpenAiKey"]
-            ?? Environment.GetEnvironmentVariable("COHERENCE_OPENAI_KEY")
-            ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY")
-            ?? string.Empty;
     }
 
     [HttpPost]
@@ -146,6 +138,22 @@ public class CoherenceController : ControllerBase
     {
         var lastStudentMessage = history.Messages.LastOrDefault(m => m.IsStudent)?.Text?.Trim();
 
+        var greetingsInstructions = new List<BotMessage>
+        {
+            new BotMessage
+            {
+                Text = "Please write or paste your text, and I’ll guide you by asking questions that help you track and refine coherence. "
+            },
+            new BotMessage
+            {
+                Text = "If any question feels unclear, you can ask me for clarification or examples. "
+            },
+            new BotMessage
+            {
+                Text = "Please choose to write or paste: (1) an abstract or summary of your current work/article in 150-500-words or (2) a longer text from part of the article that includes 2-3 consecutive paragraphs from your paper."
+            }
+        };
+
         switch (history.CurrentStage)
         {
             case 0:
@@ -169,10 +177,7 @@ public class CoherenceController : ControllerBase
                 else
                 {
                     history.StartTime = DateTime.UtcNow;
-                    greetingMessages.Add(new BotMessage
-                    {
-                        Text = "Please write or paste your text (150-500 words). You may submit an abstract/summary or 2-3 consecutive paragraphs from your paper."
-                    });
+                    greetingMessages.AddRange(greetingsInstructions);
                 }
 
                 return greetingMessages;
@@ -182,13 +187,7 @@ public class CoherenceController : ControllerBase
                 {
                     history.StartTime = DateTime.UtcNow;
                     history.CurrentStage = 2;
-                    return new List<BotMessage>
-                    {
-                        new BotMessage
-                        {
-                            Text = "Please write or paste your text (150-500 words). You may submit an abstract/summary or 2-3 consecutive paragraphs from your paper."
-                        }
-                    };
+                    return greetingsInstructions;
                 }
 
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
@@ -534,7 +533,7 @@ public class CoherenceController : ControllerBase
                     new BotMessage
                     {
                         Text = "Please list 3-4 different verbs you have used in your text and suggest verbs with a similar meaning that could replace them.",
-                        
+
                     },
                     new BotMessage
                     {
@@ -625,7 +624,7 @@ public class CoherenceController : ControllerBase
                     new BotMessage
                     {
                         Text = "Please list suitable connectors between paragraphs or sentences that could be added to show addition, examples, contradiction, sequence, etc., and indicate how you would use them.",
-                        
+
                     },
                     new BotMessage
                     {
@@ -703,7 +702,7 @@ public class CoherenceController : ControllerBase
                 {
                     new BotMessage { Text = "Thank you! We hope you learned about improving coherence in your academic texts!" },
                     new BotMessage { Text = "The final step is to answer four short, close-ended reflection questions about the chatbot use and one optional open question. For each statement, please select an option from a 5-point Likert scale where 1 = strongly disagree and 5 = strongly agree." },
-                    new BotMessage { Text = "Reflection 1: The chatbot was friendly and easy to interact with. Answer: choose one 1- strongly disagree  2- disagree 3- Neutral 4- agree 5- strongly agree" }
+                    BuildLikertOptionsMessage("Reflection 1: The chatbot was friendly and easy to interact with.")
                 };
 
             case 19:
@@ -716,7 +715,7 @@ public class CoherenceController : ControllerBase
                 history.CurrentStage = 20;
                 return new List<BotMessage>
                 {
-                    new BotMessage { Text = "Reflection 2: I found the chatbot challenging in a way that stimulated my writing skills. Answer: choose one 1- strongly disagree  2- disagree 3- Neutral 4- agree 5- strongly agree" }
+                    BuildLikertOptionsMessage("Reflection 2: I found the chatbot challenging in a way that stimulated my writing skills.")
                 };
 
             case 20:
@@ -729,7 +728,7 @@ public class CoherenceController : ControllerBase
                 history.CurrentStage = 21;
                 return new List<BotMessage>
                 {
-                    new BotMessage { Text = "Reflection 3: The chatbot was useful for improving the quality of my writing. Answer: choose one 1- strongly disagree  2- disagree 3- Neutral 4- agree 5- strongly agree" }
+                    BuildLikertOptionsMessage("Reflection 3: The chatbot was useful for improving the quality of my writing.")
                 };
 
             case 21:
@@ -742,7 +741,7 @@ public class CoherenceController : ControllerBase
                 history.CurrentStage = 22;
                 return new List<BotMessage>
                 {
-                    new BotMessage { Text = "Reflection 4: The chatbot made the task more difficult than it needed to be. Answer: choose one 1- strongly disagree  2- disagree 3- Neutral 4- agree 5- strongly agree" }
+                    BuildLikertOptionsMessage("Reflection 4: The chatbot made the task more difficult than it needed to be.")
                 };
 
             case 22:
@@ -789,9 +788,28 @@ public class CoherenceController : ControllerBase
         }
 
         builder.Append("Please type one of the following options:" +
-                       "<div class='chat-option'>Yes</div>" +
-                       "<div class='chat-option'>No</div>" +
-                       "<div class='chat-option'>Not sure</div>");
+                       "<div class='chat-option'>(1) Yes</div>" +
+                       "<div class='chat-option'>(2) No</div>" +
+                       "<div class='chat-option'>(3) Not sure</div>");
+
+        return new BotMessage { Text = builder.ToString() };
+    }
+
+
+    private BotMessage BuildLikertOptionsMessage(string prefix = null)
+    {
+        var builder = new StringBuilder();
+        if (!string.IsNullOrEmpty(prefix))
+        {
+            builder.Append(prefix).Append(" ");
+        }
+
+        builder.Append("Please type one of the following options:" +
+                       "<div class='chat-option'>(1) Strongly disagree</div>" +
+                       "<div class='chat-option'>(2) Disagree</div>" +
+                       "<div class='chat-option'>(3) Neutral</div>" +
+                       "<div class='chat-option'>(4) Agree</div>" +
+                       "<div class='chat-option'>(5) Strongly agree</div>");
 
         return new BotMessage { Text = builder.ToString() };
     }
@@ -807,58 +825,35 @@ public class CoherenceController : ControllerBase
         return null;
     }
 
-    private bool IsValidClosedChoice(string input)
+    private bool IsValidClosedChoice(string lastUserText)
     {
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            return false;
-        }
-
-        var normalized = NormalizeClosedChoice(input);
-        return normalized is "yes" or "no" or "not sure";
+        return new List<string> { "1", "2", "3" }.Any(r => r == lastUserText.Trim());
     }
 
-    private string NormalizeClosedChoice(string input)
+    private string NormalizeClosedChoice(string lastStudentMessage)
     {
-        if (string.IsNullOrWhiteSpace(input))
+        return lastStudentMessage switch
         {
-            return string.Empty;
-        }
-
-        var trimmed = input.Trim().ToLowerInvariant();
-        return trimmed switch
-        {
-            "y" => "yes",
-            "yes" => "yes",
-            "n" => "no",
-            "no" => "no",
-            "not sure" => "not sure",
-            "notsure" => "not sure",
-            "ns" => "not sure",
-            _ => trimmed
+            "1" => "Yes",
+            "2" => "No",
+            "3" => "Not sure",
         };
     }
 
     private bool IsValidLikertChoice(string input)
     {
-        var normalized = NormalizeLikertChoice(input);
-        return normalized is "1" or "2" or "3" or "4" or "5";
+        return new List<string> { "1", "2", "3", "4", "5" }.Any(r => r == input.Trim());
     }
 
     private string NormalizeLikertChoice(string input)
     {
         return input?.Trim().ToLowerInvariant() switch
         {
-            "one" => "1",
-            "two" => "2",
-            "three" => "3",
-            "four" => "4",
-            "five" => "5",
-            "1" => "1",
-            "2" => "2",
-            "3" => "3",
-            "4" => "4",
-            "5" => "5",
+            "1" => "Strongly disagree",
+            "2" => "Disagree",
+            "3" => "Neutral",
+            "4" => "Agree",
+            "5" => "Strongly agree",
             _ => string.Empty
         };
     }
@@ -920,37 +915,7 @@ public class CoherenceController : ControllerBase
         promptBuilder.AppendLine();
         promptBuilder.AppendLine("Provide only 2-3 sentences of feedback.");
 
-        var request = BuildOpenAiRequest(promptBuilder.ToString());
-        var httpClient = _httpClientFactory.CreateClient("CustomClient");
-        var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        var json = JObject.Parse(content);
-        return json["choices"]?[0]?["text"]?.ToString().Trim() ?? string.Empty;
-    }
-
-    private HttpRequestMessage BuildOpenAiRequest(string prompt)
-    {
-        var requestBody = new
-        {
-            prompt,
-            max_tokens = 250,
-            temperature = 0.7,
-            top_p = 1.0,
-            frequency_penalty = 0,
-            presence_penalty = 0
-        };
-
-        var request = new HttpRequestMessage(HttpMethod.Post, _apiUrl);
-        if (string.IsNullOrWhiteSpace(_apiKey))
-        {
-            throw new InvalidOperationException("OpenAI API key is not configured.");
-        }
-
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-        request.Content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
-        return request;
+        return await _gptApiClient.RephraseText(promptBuilder.ToString());
     }
 
     private async Task SaveToGoogleSheets(ConversationHistory history, string? userId)
@@ -969,11 +934,6 @@ public class CoherenceController : ControllerBase
 
         try
         {
-            if (string.IsNullOrWhiteSpace(userId) || !await _supabaseClient.getIsSaveUserData(userId))
-            {
-                return;
-            }
-
             var ip = GetIp();
             var geo = await GetGeoInfoFromIp(ip);
 

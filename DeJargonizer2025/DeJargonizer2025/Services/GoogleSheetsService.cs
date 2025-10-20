@@ -11,14 +11,11 @@ public class GoogleSheetsService
 {
     private readonly ILogger<GoogleSheetsService> _logger;
     private readonly Lazy<SheetsService?> _sheetsService;
-    private readonly string? _defaultSpreadsheetId;
     private readonly string _applicationName;
 
     public GoogleSheetsService(ILogger<GoogleSheetsService> logger, IConfiguration configuration)
     {
         _logger = logger;
-        _defaultSpreadsheetId = Environment.GetEnvironmentVariable("HALFLIFE_SPREADSHEET_ID")
-                                 ?? configuration["GoogleSheets:SpreadsheetId"];
         _applicationName = configuration["GoogleSheets:ApplicationName"] ?? "half-life-dejargonizer";
 
         var credentialPath = Environment.GetEnvironmentVariable("HALFLIFE_GOOGLE_CREDENTIALS_PATH")
@@ -55,9 +52,6 @@ public class GoogleSheetsService
             }
         });
     }
-
-    public Task AppendRowAsync(string sheetName, IList<object> values, CancellationToken cancellationToken = default)
-        => AppendRowAsync(_defaultSpreadsheetId, sheetName, values, cancellationToken);
 
     public async Task AppendRowAsync(string? spreadsheetId, string sheetName, IList<object> values, CancellationToken cancellationToken = default)
     {

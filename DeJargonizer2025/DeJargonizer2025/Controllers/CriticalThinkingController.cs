@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using DeJargonizer2025.Helpers;
 using JargonProject.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -20,8 +21,7 @@ public class CriticalThinkingController : ControllerBase
     private readonly SupabaseClient _supabaseClient;
     private readonly ILogger<CriticalThinkingController> _logger;
     private readonly GoogleSheetsService _googleSheetsService;
-    private readonly string _apiUrl;
-    private readonly string _apiKey;
+    private readonly GPTApiClient _gptApiClient;
     private readonly string _spreadsheetId;
     private readonly string _sheetName;
 
@@ -76,12 +76,14 @@ public class CriticalThinkingController : ControllerBase
         SupabaseClient supabaseClient,
         ILogger<CriticalThinkingController> logger,
         IConfiguration configuration,
-        GoogleSheetsService googleSheetsService)
+        GoogleSheetsService googleSheetsService,
+        GPTApiClient gptApiClient)
     {
         _httpClientFactory = httpClientFactory;
         _supabaseClient = supabaseClient;
         _logger = logger;
         _googleSheetsService = googleSheetsService;
+        _gptApiClient = gptApiClient;
 
         _spreadsheetId = configuration["CriticalThinkingChatbot:SpreadsheetId"]
             ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SPREADSHEET_ID")
@@ -90,15 +92,6 @@ public class CriticalThinkingController : ControllerBase
         _sheetName = configuration["CriticalThinkingChatbot:SheetName"]
             ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SHEET_NAME")
             ?? "results";
-
-        _apiUrl = configuration["CriticalThinkingChatbot:OpenAiUrl"]
-            ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_OPENAI_URL")
-            ?? "https://api.openai.com/v1/engines/gpt-3.5-turbo-instruct/completions";
-
-        _apiKey = configuration["CriticalThinkingChatbot:OpenAiKey"]
-            ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_OPENAI_KEY")
-            ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY")
-            ?? string.Empty;
     }
 
     [HttpPost]
@@ -541,14 +534,7 @@ public class CriticalThinkingController : ControllerBase
         try
         {
             var prompt = BuildFeedbackPrompt(questionNumber, history);
-            var request = CreatePostRequest(prompt);
-            var httpClient = _httpClientFactory.CreateClient("CustomClient");
-            var response = await httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var json = JObject.Parse(responseContent);
-            return json["choices"]?[0]?["text"]?.ToString().Trim() ?? "";
+            return await _gptApiClient.RephraseText(prompt);
         }
         catch (Exception ex)
         {
@@ -608,30 +594,6 @@ public class CriticalThinkingController : ControllerBase
 
         return sb.ToString();
     }
-
-    private HttpRequestMessage CreatePostRequest(string prompt)
-    {
-        var requestBody = new
-        {
-            prompt,
-            max_tokens = 256,
-            temperature = 0.4,
-            top_p = 1.0,
-            frequency_penalty = 0,
-            presence_penalty = 0
-        };
-
-        var request = new HttpRequestMessage(HttpMethod.Post, _apiUrl);
-        if (string.IsNullOrWhiteSpace(_apiKey))
-        {
-            throw new InvalidOperationException("OpenAI API key is not configured.");
-        }
-
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-        request.Content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
-        return request;
-    }
-
 
     private async Task SaveToGoogleSheets(ConversationHistory history, string? userId)
     {

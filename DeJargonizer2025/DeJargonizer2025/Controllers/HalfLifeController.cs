@@ -6,6 +6,7 @@ using JargonProject.Handlers;
 using JargonProject.Models;
 using JargonProject.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 using static JargonProject.Controllers.TextGradingController;
@@ -23,6 +24,7 @@ public class HalfLifeController : ControllerBase
     private readonly GoogleSheetsService _googleSheetsService;
     private readonly string _fullFeedbackSheetName;
     private readonly string _noFeedbackSheetName;
+    private readonly string? _spreadsheetId;
 
     readonly Dictionary<int, (int min, int max)> wordCountRanges = new Dictionary<int, (int min, int max)>
     {
@@ -165,7 +167,8 @@ public class HalfLifeController : ControllerBase
 
     public HalfLifeController(IHttpClientFactory httpClientFactory, SupabaseClient supabaseClient, ILogger<HalfLifeController> logger,
                                 UsageCounter usageCounter, IWebHostEnvironment env, GPTApiClient gptApiClient,
-                                GoogleSheetsService googleSheetsService)
+                                GoogleSheetsService googleSheetsService,
+                                IConfiguration configuration)
     {
         _client = httpClientFactory.CreateClient("CustomClient");
         _supabaseClient = supabaseClient;
@@ -176,6 +179,8 @@ public class HalfLifeController : ControllerBase
         _googleSheetsService = googleSheetsService;
         _fullFeedbackSheetName = Environment.GetEnvironmentVariable("HALFLIFE_SHEET_FULL") ?? "results-jargon-ai";
         _noFeedbackSheetName = Environment.GetEnvironmentVariable("HALFLIFE_SHEET_NO_FEEDBACK") ?? "results-basic";
+        _spreadsheetId = Environment.GetEnvironmentVariable("HALFLIFE_SPREADSHEET_ID")
+                         ?? configuration["GoogleSheets:SpreadsheetId"];
     }
 
     [HttpPost]
@@ -453,6 +458,12 @@ public class HalfLifeController : ControllerBase
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(_spreadsheetId))
+        {
+            _logger.LogWarning("Google Sheets spreadsheet id is not configured for Half-Life.");
+            return;
+        }
+
         try
         {
             var ip = IpHelper.GetClientIp(HttpContext);
@@ -507,7 +518,7 @@ public class HalfLifeController : ControllerBase
             };
             }
 
-            await _googleSheetsService.AppendRowAsync(sheetName, values);
+            await _googleSheetsService.AppendRowAsync(_spreadsheetId, sheetName, values);
             Debug.WriteLine("Data successfully saved to Google Sheets.");
 
         }

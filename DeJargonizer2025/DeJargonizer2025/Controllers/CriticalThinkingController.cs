@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using DeJargonizer2025.Helpers;
 using JargonProject.Services;
@@ -12,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -63,12 +66,114 @@ public class CriticalThinkingController : ControllerBase
         public string ReflectionAnswer3 { get; set; }
         public string ReflectionAnswer4 { get; set; }
         public string ReflectionOpenResponse { get; set; }
+
+        public string TaskId { get; set; }
     }
 
     public class Message
     {
         public string Text { get; set; }
         public bool IsStudent { get; set; }
+    }
+
+    [Table("critical_thinking_user_interactions")]
+    public class CriticalThinkingUserInteraction : BaseModel
+    {
+        [Column("user_id")]
+        public string? UserId { get; set; }
+
+        [Column("participant_name")]
+        public string? ParticipantName { get; set; }
+
+        [Column("start_time")]
+        public DateTime StartTime { get; set; }
+
+        [Column("end_time")]
+        public DateTime EndTime { get; set; }
+
+        [Column("is_research")]
+        public bool IsResearch { get; set; }
+
+        [Column("ip_address")]
+        public string? IpAddress { get; set; }
+
+        [Column("country")]
+        public string? Country { get; set; }
+
+        [Column("region")]
+        public string? Region { get; set; }
+
+        [Column("city")]
+        public string? City { get; set; }
+
+        [Column("initial_summary")]
+        public string? InitialSummary { get; set; }
+
+        [Column("current_summary")]
+        public string? CurrentSummary { get; set; }
+
+        [Column("question1_answer")]
+        public string? Question1Answer { get; set; }
+
+        [Column("revision_after_question1")]
+        public string? RevisionAfterQuestion1 { get; set; }
+
+        [Column("feedback1")]
+        public string? Feedback1 { get; set; }
+
+        [Column("question2_answer")]
+        public string? Question2Answer { get; set; }
+
+        [Column("revision_after_question2")]
+        public string? RevisionAfterQuestion2 { get; set; }
+
+        [Column("feedback2")]
+        public string? Feedback2 { get; set; }
+
+        [Column("question3_answer")]
+        public string? Question3Answer { get; set; }
+
+        [Column("revision_after_question3")]
+        public string? RevisionAfterQuestion3 { get; set; }
+
+        [Column("feedback3")]
+        public string? Feedback3 { get; set; }
+
+        [Column("question4_answer")]
+        public string? Question4Answer { get; set; }
+
+        [Column("revision_after_question4")]
+        public string? RevisionAfterQuestion4 { get; set; }
+
+        [Column("feedback4")]
+        public string? Feedback4 { get; set; }
+
+        [Column("question5_answer")]
+        public string? Question5Answer { get; set; }
+
+        [Column("revision_after_question5")]
+        public string? RevisionAfterQuestion5 { get; set; }
+
+        [Column("feedback5")]
+        public string? Feedback5 { get; set; }
+
+        [Column("final_summary")]
+        public string? FinalSummary { get; set; }
+
+        [Column("reflection_answer1")]
+        public string? ReflectionAnswer1 { get; set; }
+
+        [Column("reflection_answer2")]
+        public string? ReflectionAnswer2 { get; set; }
+
+        [Column("reflection_answer3")]
+        public string? ReflectionAnswer3 { get; set; }
+
+        [Column("reflection_answer4")]
+        public string? ReflectionAnswer4 { get; set; }
+
+        [Column("reflection_open_response")]
+        public string? ReflectionOpenResponse { get; set; }
     }
 
     public CriticalThinkingController(
@@ -103,7 +208,7 @@ public class CriticalThinkingController : ControllerBase
 
             var userId = await HttpContext.TryGetUserIdAsync();
 
-            var responseMessages = await DetermineResponse(history, userId);
+            var responseMessages = await DetermineResponse(history, userId, includeFeedback: true);
 
             history.Messages.AddRange(responseMessages.Select(m => new Message { Text = m, IsStudent = false }));
 
@@ -116,7 +221,29 @@ public class CriticalThinkingController : ControllerBase
         }
     }
 
-    private async Task<List<string>> DetermineResponse(ConversationHistory history, string? userId)
+    [HttpPost("no-feedback")]
+    public async Task<IActionResult> ProcessConversationWithoutFeedback([FromBody] ConversationHistory history)
+    {
+        try
+        {
+            history.Messages ??= new List<Message>();
+
+            var userId = await HttpContext.TryGetUserIdAsync();
+
+            var responseMessages = await DetermineResponse(history, userId, includeFeedback: false);
+
+            history.Messages.AddRange(responseMessages.Select(m => new Message { Text = m, IsStudent = false }));
+
+            return Ok(new { Messages = responseMessages, UpdatedHistory = history });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while processing critical-thinking conversation without feedback");
+            return StatusCode(500, "An error occurred while processing your request.");
+        }
+    }
+
+    private async Task<List<string>> DetermineResponse(ConversationHistory history, string? userId, bool includeFeedback)
     {
         var lastStudentMessage = history.Messages.LastOrDefault(m => m.IsStudent)?.Text?.Trim();
 
@@ -202,13 +329,32 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 history.Question1Answer = lastStudentMessage;
-                history.Feedback1 = await GenerateFeedbackAsync(1, history);
-                history.CurrentStage = 4;
-                return new List<string>
+
+                if (includeFeedback)
                 {
-                    history.Feedback1,
-                    "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the purpose is stated clearly. (150–200 words)"
-                };
+                    history.Feedback1 = await GenerateFeedbackAsync(1, history);
+                }
+                else
+                {
+                    history.Feedback1 = null;
+                }
+
+                history.CurrentStage = 4;
+
+                var responses1 = new List<string>();
+
+                if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback1))
+                {
+                    responses1.Add(history.Feedback1);
+                }
+
+                var revisionPrompt1 = includeFeedback
+                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the purpose is stated clearly. (150–200 words)"
+                    : "Please write a revised version (150–200 words), using your own ideas and insights about clarifying the purpose.";
+
+                responses1.Add(revisionPrompt1);
+
+                return responses1;
 
             case 4:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
@@ -244,13 +390,32 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 history.Question2Answer = lastStudentMessage;
-                history.Feedback2 = await GenerateFeedbackAsync(2, history);
-                history.CurrentStage = 6;
-                return new List<string>
+
+                if (includeFeedback)
                 {
-                    history.Feedback2,
-                    "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please try to make sure the key questions are stated clearly. (150–200 words)"
-                };
+                    history.Feedback2 = await GenerateFeedbackAsync(2, history);
+                }
+                else
+                {
+                    history.Feedback2 = null;
+                }
+
+                history.CurrentStage = 6;
+
+                var responses2 = new List<string>();
+
+                if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback2))
+                {
+                    responses2.Add(history.Feedback2);
+                }
+
+                var revisionPrompt2 = includeFeedback
+                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please try to make sure the key questions are stated clearly. (150–200 words)"
+                    : "Please write a revised version (150–200 words), drawing on your own ideas to clarify the key research questions.";
+
+                responses2.Add(revisionPrompt2);
+
+                return responses2;
 
             case 6:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
@@ -286,13 +451,32 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 history.Question3Answer = lastStudentMessage;
-                history.Feedback3 = await GenerateFeedbackAsync(3, history);
-                history.CurrentStage = 8;
-                return new List<string>
+
+                if (includeFeedback)
                 {
-                    history.Feedback3,
-                    "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the key information is stated clearly. (150–200 words)"
-                };
+                    history.Feedback3 = await GenerateFeedbackAsync(3, history);
+                }
+                else
+                {
+                    history.Feedback3 = null;
+                }
+
+                history.CurrentStage = 8;
+
+                var responses3 = new List<string>();
+
+                if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback3))
+                {
+                    responses3.Add(history.Feedback3);
+                }
+
+                var revisionPrompt3 = includeFeedback
+                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the key information is stated clearly. (150–200 words)"
+                    : "Please write a revised version (150–200 words), focusing on clearly presenting the key information you identified.";
+
+                responses3.Add(revisionPrompt3);
+
+                return responses3;
 
             case 8:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
@@ -328,13 +512,32 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 history.Question4Answer = lastStudentMessage;
-                history.Feedback4 = await GenerateFeedbackAsync(4, history);
-                history.CurrentStage = 10;
-                return new List<string>
+
+                if (includeFeedback)
                 {
-                    history.Feedback4,
-                    "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the conclusion is stated clearly. (150–200 words)"
-                };
+                    history.Feedback4 = await GenerateFeedbackAsync(4, history);
+                }
+                else
+                {
+                    history.Feedback4 = null;
+                }
+
+                history.CurrentStage = 10;
+
+                var responses4 = new List<string>();
+
+                if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback4))
+                {
+                    responses4.Add(history.Feedback4);
+                }
+
+                var revisionPrompt4 = includeFeedback
+                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the conclusion is stated clearly. (150–200 words)"
+                    : "Please write a revised version (150–200 words), making sure your conclusions are clearly stated using your own insights.";
+
+                responses4.Add(revisionPrompt4);
+
+                return responses4;
 
             case 10:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
@@ -370,13 +573,32 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 history.Question5Answer = lastStudentMessage;
-                history.Feedback5 = await GenerateFeedbackAsync(5, history);
-                history.CurrentStage = 12;
-                return new List<string>
+
+                if (includeFeedback)
                 {
-                    history.Feedback5,
-                    "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the significance in the broader context is stated clearly. (150–200 words)"
-                };
+                    history.Feedback5 = await GenerateFeedbackAsync(5, history);
+                }
+                else
+                {
+                    history.Feedback5 = null;
+                }
+
+                history.CurrentStage = 12;
+
+                var responses5 = new List<string>();
+
+                if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback5))
+                {
+                    responses5.Add(history.Feedback5);
+                }
+
+                var revisionPrompt5 = includeFeedback
+                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the significance in the broader context is stated clearly. (150–200 words)"
+                    : "Please write a revised version (150–200 words), highlighting the broader significance in your own words.";
+
+                responses5.Add(revisionPrompt5);
+
+                return responses5;
 
             case 12:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
@@ -479,6 +701,10 @@ public class CriticalThinkingController : ControllerBase
                 if (history.isResearch)
                 {
                     await SaveToGoogleSheets(history, userId);
+                }
+                else
+                {
+                    history.TaskId = await SaveToSupabase(history, userId);
                 }
 
                 return new List<string>
@@ -593,6 +819,63 @@ public class CriticalThinkingController : ControllerBase
         }
 
         return sb.ToString();
+    }
+
+    private async Task<string?> SaveToSupabase(ConversationHistory history, string? userId)
+    {
+        try
+        {
+            var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
+            var ip = GetIp();
+            var geo = await GetGeoInfoFromIp(ip);
+
+            var data = new CriticalThinkingUserInteraction
+            {
+                UserId = isSaveUserData ? userId : null,
+                ParticipantName = isSaveUserData ? history.ParticipantName : null,
+                StartTime = history.StartTime == default ? DateTime.UtcNow : history.StartTime,
+                EndTime = DateTime.UtcNow,
+                IsResearch = history.isResearch,
+                IpAddress = ip,
+                Country = geo.Country,
+                Region = geo.Region,
+                City = geo.City,
+                InitialSummary = isSaveUserData ? history.InitialSummary : null,
+                CurrentSummary = isSaveUserData ? history.CurrentSummary : null,
+                Question1Answer = isSaveUserData ? history.Question1Answer : null,
+                RevisionAfterQuestion1 = isSaveUserData ? history.RevisionAfterQuestion1 : null,
+                Feedback1 = isSaveUserData ? history.Feedback1 : null,
+                Question2Answer = isSaveUserData ? history.Question2Answer : null,
+                RevisionAfterQuestion2 = isSaveUserData ? history.RevisionAfterQuestion2 : null,
+                Feedback2 = isSaveUserData ? history.Feedback2 : null,
+                Question3Answer = isSaveUserData ? history.Question3Answer : null,
+                RevisionAfterQuestion3 = isSaveUserData ? history.RevisionAfterQuestion3 : null,
+                Feedback3 = isSaveUserData ? history.Feedback3 : null,
+                Question4Answer = isSaveUserData ? history.Question4Answer : null,
+                RevisionAfterQuestion4 = isSaveUserData ? history.RevisionAfterQuestion4 : null,
+                Feedback4 = isSaveUserData ? history.Feedback4 : null,
+                Question5Answer = isSaveUserData ? history.Question5Answer : null,
+                RevisionAfterQuestion5 = isSaveUserData ? history.RevisionAfterQuestion5 : null,
+                Feedback5 = isSaveUserData ? history.Feedback5 : null,
+                FinalSummary = isSaveUserData ? history.FinalSummary : null,
+                ReflectionAnswer1 = history.ReflectionAnswer1,
+                ReflectionAnswer2 = history.ReflectionAnswer2,
+                ReflectionAnswer3 = history.ReflectionAnswer3,
+                ReflectionAnswer4 = history.ReflectionAnswer4,
+                ReflectionOpenResponse = isSaveUserData ? history.ReflectionOpenResponse : null
+            };
+
+            var result = await _supabaseClient.client.From<CriticalThinkingUserInteraction>().Insert(data);
+
+            using var doc = JsonDocument.Parse(result.Content);
+            return doc.RootElement[0].GetProperty("id").GetString();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving critical-thinking session to Supabase");
+        }
+
+        return null;
     }
 
     private async Task SaveToGoogleSheets(ConversationHistory history, string? userId)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DeJargonizer2025.Helpers;
@@ -13,6 +14,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -69,6 +72,8 @@ public class CoherenceController : ControllerBase
         public string ReflectionAnswer3 { get; set; }
         public string ReflectionAnswer4 { get; set; }
         public string ReflectionOpenResponse { get; set; }
+
+        public string TaskId { get; set; }
     }
 
     public class Message
@@ -85,6 +90,121 @@ public class CoherenceController : ControllerBase
         public List<string> TableHeaders { get; set; }
         public List<string>? ExampleRow { get; set; }
         public int? MinRows { get; set; }
+    }
+
+    [Table("coherence_user_interactions")]
+    public class CoherenceUserInteraction : BaseModel
+    {
+        [Column("user_id")]
+        public string? UserId { get; set; }
+
+        [Column("participant_name")]
+        public string? ParticipantName { get; set; }
+
+        [Column("start_time")]
+        public DateTime StartTime { get; set; }
+
+        [Column("end_time")]
+        public DateTime EndTime { get; set; }
+
+        [Column("is_research")]
+        public bool IsResearch { get; set; }
+
+        [Column("ip_address")]
+        public string? IpAddress { get; set; }
+
+        [Column("country")]
+        public string? Country { get; set; }
+
+        [Column("region")]
+        public string? Region { get; set; }
+
+        [Column("city")]
+        public string? City { get; set; }
+
+        [Column("initial_text")]
+        public string? InitialText { get; set; }
+
+        [Column("current_text")]
+        public string? CurrentText { get; set; }
+
+        [Column("question1_choice")]
+        public string? Question1Choice { get; set; }
+
+        [Column("question1_details")]
+        public string? Question1Details { get; set; }
+
+        [Column("revision_after_question1")]
+        public string? RevisionAfterQuestion1 { get; set; }
+
+        [Column("feedback1")]
+        public string? Feedback1 { get; set; }
+
+        [Column("question2_choice")]
+        public string? Question2Choice { get; set; }
+
+        [Column("question2_details")]
+        public string? Question2Details { get; set; }
+
+        [Column("revision_after_question2")]
+        public string? RevisionAfterQuestion2 { get; set; }
+
+        [Column("feedback2")]
+        public string? Feedback2 { get; set; }
+
+        [Column("question3_choice")]
+        public string? Question3Choice { get; set; }
+
+        [Column("question3_details")]
+        public string? Question3Details { get; set; }
+
+        [Column("revision_after_question3")]
+        public string? RevisionAfterQuestion3 { get; set; }
+
+        [Column("feedback3")]
+        public string? Feedback3 { get; set; }
+
+        [Column("question4_choice")]
+        public string? Question4Choice { get; set; }
+
+        [Column("question4_details")]
+        public string? Question4Details { get; set; }
+
+        [Column("revision_after_question4")]
+        public string? RevisionAfterQuestion4 { get; set; }
+
+        [Column("feedback4")]
+        public string? Feedback4 { get; set; }
+
+        [Column("question5_choice")]
+        public string? Question5Choice { get; set; }
+
+        [Column("question5_details")]
+        public string? Question5Details { get; set; }
+
+        [Column("revision_after_question5")]
+        public string? RevisionAfterQuestion5 { get; set; }
+
+        [Column("feedback5")]
+        public string? Feedback5 { get; set; }
+
+        [Column("final_text")]
+        public string? FinalText { get; set; }
+
+        [Column("reflection_answer1")]
+        public string? ReflectionAnswer1 { get; set; }
+
+        [Column("reflection_answer2")]
+        public string? ReflectionAnswer2 { get; set; }
+
+        [Column("reflection_answer3")]
+        public string? ReflectionAnswer3 { get; set; }
+
+        [Column("reflection_answer4")]
+        public string? ReflectionAnswer4 { get; set; }
+
+        [Column("reflection_open_response")]
+        public string? ReflectionOpenResponse { get; set; }
     }
 
     public CoherenceController(
@@ -119,7 +239,7 @@ public class CoherenceController : ControllerBase
 
             var userId = await HttpContext.TryGetUserIdAsync();
 
-            var responseMessages = await DetermineResponse(history, userId);
+            var responseMessages = await DetermineResponse(history, userId, includeFeedback: true);
 
             history.Messages.AddRange(responseMessages.Select(m => new Message
             {
@@ -137,7 +257,34 @@ public class CoherenceController : ControllerBase
         }
     }
 
-    private async Task<List<BotMessage>> DetermineResponse(ConversationHistory history, string? userId)
+    [HttpPost("no-feedback")]
+    public async Task<IActionResult> ProcessConversationWithoutFeedback([FromBody] ConversationHistory history)
+    {
+        try
+        {
+            history.Messages ??= new List<Message>();
+
+            var userId = await HttpContext.TryGetUserIdAsync();
+
+            var responseMessages = await DetermineResponse(history, userId, includeFeedback: false);
+
+            history.Messages.AddRange(responseMessages.Select(m => new Message
+            {
+                Text = m.Text,
+                IsStudent = false,
+                InputType = m.InputType
+            }));
+
+            return Ok(new { Messages = responseMessages, UpdatedHistory = history });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while processing coherence conversation without feedback");
+            return StatusCode(500, "An error occurred while processing your request.");
+        }
+    }
+
+    private async Task<List<BotMessage>> DetermineResponse(ConversationHistory history, string? userId, bool includeFeedback)
     {
         var lastStudentMessage = history.Messages.LastOrDefault(m => m.IsStudent)?.Text?.Trim();
 
@@ -285,21 +432,41 @@ public class CoherenceController : ControllerBase
                 }
 
                 history.Question1Details = FormatTable(lastStudentMessage);
-                history.Feedback1 = await GenerateFeedbackAsync(1, history);
+
+                if (includeFeedback)
+                {
+                    history.Feedback1 = await GenerateFeedbackAsync(1, history);
+                }
+                else
+                {
+                    history.Feedback1 = null;
+                }
+
                 history.CurrentStage = 5;
 
-                return new List<BotMessage>
+                var revisionIntro1 = includeFeedback
+                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant."
+                    : "Please write a revised version, incorporating your own ideas and what you observed while completing the table.";
+
+                var responses1 = new List<BotMessage>
                 {
                     new BotMessage
                     {
-                        Text = "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant.",
-                    },
-                    new BotMessage { Text = history.Feedback1 },
-                    new BotMessage
-                    {
-                        Text = "Please provide your revised text (150-500 words).",
+                        Text = revisionIntro1,
                     }
                 };
+
+                if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback1))
+                {
+                    responses1.Add(new BotMessage { Text = history.Feedback1 });
+                }
+
+                responses1.Add(new BotMessage
+                {
+                    Text = "Please provide your revised text (150-500 words).",
+                });
+
+                return responses1;
 
             case 5:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
@@ -377,21 +544,41 @@ public class CoherenceController : ControllerBase
                 }
 
                 history.Question2Details = FormatTable(lastStudentMessage);
-                history.Feedback2 = await GenerateFeedbackAsync(2, history);
+
+                if (includeFeedback)
+                {
+                    history.Feedback2 = await GenerateFeedbackAsync(2, history);
+                }
+                else
+                {
+                    history.Feedback2 = null;
+                }
+
                 history.CurrentStage = 8;
 
-                return new List<BotMessage>
+                var revisionIntro2 = includeFeedback
+                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
+                    : "Please write a revised version, incorporating your own ideas and what you noticed while analyzing your adverb use.";
+
+                var responses2 = new List<BotMessage>
                 {
                     new BotMessage
                     {
-                        Text = "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant.",
-                    },
-                    new BotMessage { Text = history.Feedback2 },
-                    new BotMessage
-                    {
-                        Text = "Please provide your revised text (150-500 words)."
+                        Text = revisionIntro2,
                     }
                 };
+
+                if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback2))
+                {
+                    responses2.Add(new BotMessage { Text = history.Feedback2 });
+                }
+
+                responses2.Add(new BotMessage
+                {
+                    Text = "Please provide your revised text (150-500 words)."
+                });
+
+                return responses2;
 
             case 8:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
@@ -469,21 +656,41 @@ public class CoherenceController : ControllerBase
                 }
 
                 history.Question3Details = FormatTable(lastStudentMessage);
-                history.Feedback3 = await GenerateFeedbackAsync(3, history);
+
+                if (includeFeedback)
+                {
+                    history.Feedback3 = await GenerateFeedbackAsync(3, history);
+                }
+                else
+                {
+                    history.Feedback3 = null;
+                }
+
                 history.CurrentStage = 11;
 
-                return new List<BotMessage>
+                var revisionIntro3 = includeFeedback
+                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
+                    : "Please write a revised version, incorporating your own ideas and what you noticed while reviewing your pronoun usage.";
+
+                var responses3 = new List<BotMessage>
                 {
                     new BotMessage
                     {
-                        Text = "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
-                    },
-                    new BotMessage { Text = history.Feedback3 },
-                    new BotMessage
-                    {
-                        Text = "Please provide your revised text (150-500 words)."
+                        Text = revisionIntro3
                     }
                 };
+
+                if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback3))
+                {
+                    responses3.Add(new BotMessage { Text = history.Feedback3 });
+                }
+
+                responses3.Add(new BotMessage
+                {
+                    Text = "Please provide your revised text (150-500 words)."
+                });
+
+                return responses3;
 
             case 11:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
@@ -562,21 +769,41 @@ public class CoherenceController : ControllerBase
                 }
 
                 history.Question4Details = FormatTable(lastStudentMessage);
-                history.Feedback4 = await GenerateFeedbackAsync(4, history);
+
+                if (includeFeedback)
+                {
+                    history.Feedback4 = await GenerateFeedbackAsync(4, history);
+                }
+                else
+                {
+                    history.Feedback4 = null;
+                }
+
                 history.CurrentStage = 14;
 
-                return new List<BotMessage>
+                var revisionIntro4 = includeFeedback
+                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
+                    : "Please write a revised version, incorporating your own ideas and what you learned while mapping the verbs you use.";
+
+                var responses4 = new List<BotMessage>
                 {
                     new BotMessage
                     {
-                        Text = "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
-                    },
-                    new BotMessage { Text = history.Feedback4 },
-                    new BotMessage
-                    {
-                        Text = "Please provide your revised text (150-500 words)."
+                        Text = revisionIntro4
                     }
                 };
+
+                if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback4))
+                {
+                    responses4.Add(new BotMessage { Text = history.Feedback4 });
+                }
+
+                responses4.Add(new BotMessage
+                {
+                    Text = "Please provide your revised text (150-500 words)."
+                });
+
+                return responses4;
 
             case 14:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
@@ -655,21 +882,41 @@ public class CoherenceController : ControllerBase
                 }
 
                 history.Question5Details = FormatTable(lastStudentMessage);
-                history.Feedback5 = await GenerateFeedbackAsync(5, history);
+
+                if (includeFeedback)
+                {
+                    history.Feedback5 = await GenerateFeedbackAsync(5, history);
+                }
+                else
+                {
+                    history.Feedback5 = null;
+                }
+
                 history.CurrentStage = 17;
 
-                return new List<BotMessage>
+                var revisionIntro5 = includeFeedback
+                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
+                    : "Please write a revised version, incorporating your own ideas and what you noticed about your connectors.";
+
+                var responses5 = new List<BotMessage>
                 {
                     new BotMessage
                     {
-                        Text = "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
-                    },
-                    new BotMessage { Text = history.Feedback5 },
-                    new BotMessage
-                    {
-                        Text = "Please provide your revised text (150-500 words)."
+                        Text = revisionIntro5
                     }
                 };
+
+                if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback5))
+                {
+                    responses5.Add(new BotMessage { Text = history.Feedback5 });
+                }
+
+                responses5.Add(new BotMessage
+                {
+                    Text = "Please provide your revised text (150-500 words)."
+                });
+
+                return responses5;
 
             case 17:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
@@ -777,6 +1024,10 @@ public class CoherenceController : ControllerBase
                 if (history.isResearch)
                 {
                     await SaveToGoogleSheets(history, userId);
+                }
+                else
+                {
+                    history.TaskId = await SaveToSupabase(history, userId);
                 }
 
                 return new List<BotMessage>
@@ -996,6 +1247,68 @@ public class CoherenceController : ControllerBase
         promptBuilder.AppendLine("Provide only 2-3 sentences of feedback.");
 
         return await _gptApiClient.RephraseText(promptBuilder.ToString());
+    }
+
+    private async Task<string?> SaveToSupabase(ConversationHistory history, string? userId)
+    {
+        try
+        {
+            var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
+            var ip = GetIp();
+            var geo = await GetGeoInfoFromIp(ip);
+
+            var data = new CoherenceUserInteraction
+            {
+                UserId = isSaveUserData ? userId : null,
+                ParticipantName = isSaveUserData ? history.ParticipantName : null,
+                StartTime = history.StartTime == default ? DateTime.UtcNow : history.StartTime,
+                EndTime = DateTime.UtcNow,
+                IsResearch = history.isResearch,
+                IpAddress = ip,
+                Country = geo.Country,
+                Region = geo.Region,
+                City = geo.City,
+                InitialText = isSaveUserData ? history.InitialText : null,
+                CurrentText = isSaveUserData ? history.CurrentText : null,
+                Question1Choice = history.Question1Choice,
+                Question1Details = isSaveUserData ? history.Question1Details : null,
+                RevisionAfterQuestion1 = isSaveUserData ? history.RevisionAfterQuestion1 : null,
+                Feedback1 = isSaveUserData ? history.Feedback1 : null,
+                Question2Choice = history.Question2Choice,
+                Question2Details = isSaveUserData ? history.Question2Details : null,
+                RevisionAfterQuestion2 = isSaveUserData ? history.RevisionAfterQuestion2 : null,
+                Feedback2 = isSaveUserData ? history.Feedback2 : null,
+                Question3Choice = history.Question3Choice,
+                Question3Details = isSaveUserData ? history.Question3Details : null,
+                RevisionAfterQuestion3 = isSaveUserData ? history.RevisionAfterQuestion3 : null,
+                Feedback3 = isSaveUserData ? history.Feedback3 : null,
+                Question4Choice = history.Question4Choice,
+                Question4Details = isSaveUserData ? history.Question4Details : null,
+                RevisionAfterQuestion4 = isSaveUserData ? history.RevisionAfterQuestion4 : null,
+                Feedback4 = isSaveUserData ? history.Feedback4 : null,
+                Question5Choice = history.Question5Choice,
+                Question5Details = isSaveUserData ? history.Question5Details : null,
+                RevisionAfterQuestion5 = isSaveUserData ? history.RevisionAfterQuestion5 : null,
+                Feedback5 = isSaveUserData ? history.Feedback5 : null,
+                FinalText = isSaveUserData ? history.FinalText : null,
+                ReflectionAnswer1 = isSaveUserData ? history.ReflectionAnswer1 : null,
+                ReflectionAnswer2 = isSaveUserData ? history.ReflectionAnswer2 : null,
+                ReflectionAnswer3 = isSaveUserData ? history.ReflectionAnswer3 : null,
+                ReflectionAnswer4 = isSaveUserData ? history.ReflectionAnswer4 : null,
+                ReflectionOpenResponse = isSaveUserData ? history.ReflectionOpenResponse : null
+            };
+
+            var result = await _supabaseClient.client.From<CoherenceUserInteraction>().Insert(data);
+
+            using var doc = JsonDocument.Parse(result.Content);
+            return doc.RootElement[0].GetProperty("id").GetString();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving coherence session to Supabase");
+        }
+
+        return null;
     }
 
     private async Task SaveToGoogleSheets(ConversationHistory history, string? userId)

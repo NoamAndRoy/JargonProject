@@ -1,0 +1,31 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE IF NOT EXISTS critical_thinking_user_interactions (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id text NULL,
+    start_time timestamptz NOT NULL,
+    end_time timestamptz NOT NULL,
+    initial_summary text,
+    question1_answer text,
+    revision_after_question1 text,
+    feedback1 text,
+    question2_answer text,
+    revision_after_question2 text,
+    feedback2 text,
+    question3_answer text,
+    revision_after_question3 text,
+    feedback3 text,
+    question4_answer text,
+    revision_after_question4 text,
+    feedback4 text,
+    question5_answer text,
+    revision_after_question5 text,
+    feedback5 text,
+    final_summary text,
+    reflection_answer1 text,
+    reflection_answer2 text,
+    reflection_answer3 text,
+    reflection_answer4 text,
+    reflection_open_response text,
+    created_at timestamptz NOT NULL DEFAULT now()
+);

@@ -84,35 +84,14 @@ public class CriticalThinkingController : ControllerBase
         [Column("user_id")]
         public string? UserId { get; set; }
 
-        [Column("participant_name")]
-        public string? ParticipantName { get; set; }
-
         [Column("start_time")]
         public DateTime StartTime { get; set; }
 
         [Column("end_time")]
         public DateTime EndTime { get; set; }
 
-        [Column("is_research")]
-        public bool IsResearch { get; set; }
-
-        [Column("ip_address")]
-        public string? IpAddress { get; set; }
-
-        [Column("country")]
-        public string? Country { get; set; }
-
-        [Column("region")]
-        public string? Region { get; set; }
-
-        [Column("city")]
-        public string? City { get; set; }
-
         [Column("initial_summary")]
         public string? InitialSummary { get; set; }
-
-        [Column("current_summary")]
-        public string? CurrentSummary { get; set; }
 
         [Column("question1_answer")]
         public string? Question1Answer { get; set; }
@@ -196,18 +175,13 @@ public class CriticalThinkingController : ControllerBase
             ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SPREADSHEET_ID")
             ?? string.Empty;
 
-        var defaultSheetName = configuration["CriticalThinkingChatbot:SheetName"]
-            ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SHEET_NAME");
-
         _feedbackSheetName = configuration["CriticalThinkingChatbot:SheetNameWithFeedback"]
             ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SHEET_NAME_WITH_FEEDBACK")
-            ?? defaultSheetName
-            ?? "results";
+            ?? string.Empty;
 
         _noFeedbackSheetName = configuration["CriticalThinkingChatbot:SheetNameWithoutFeedback"]
             ?? Environment.GetEnvironmentVariable("CRITICAL_THINKING_SHEET_NAME_NO_FEEDBACK")
-            ?? defaultSheetName
-            ?? "results";
+            ?? string.Empty;
     }
 
     [HttpPost]
@@ -745,26 +719,20 @@ public class CriticalThinkingController : ControllerBase
 
     private bool IsValidLikertChoice(string input)
     {
-        var normalized = NormalizeLikertChoice(input);
-        return normalized is "1" or "2" or "3" or "4" or "5";
+        return new List<string> { "1", "2", "3", "4", "5" }.Any(r => r == input.Trim());
     }
 
     private string NormalizeLikertChoice(string input)
     {
         return input?.Trim().ToLowerInvariant() switch
         {
-            "1" => "1",
-            "2" => "2",
-            "3" => "3",
-            "4" => "4",
-            "5" => "5",
-            "strongly disagree" => "1",
-            "disagree" => "2",
-            "neutral" => "3",
-            "agree" => "4",
-            "strongly agree" => "5",
-            _ => input?.Trim()
-        } ?? string.Empty;
+            "1" => "Strongly disagree",
+            "2" => "Disagree",
+            "3" => "Neutral",
+            "4" => "Agree",
+            "5" => "Strongly agree",
+            _ => string.Empty
+        };
     }
 
     private async Task<string> GenerateFeedbackAsync(int questionNumber, ConversationHistory history)
@@ -838,22 +806,13 @@ public class CriticalThinkingController : ControllerBase
         try
         {
             var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
-            var ip = GetIp();
-            var geo = await GetGeoInfoFromIp(ip);
 
             var data = new CriticalThinkingUserInteraction
             {
                 UserId = isSaveUserData ? userId : null,
-                ParticipantName = isSaveUserData ? history.ParticipantName : null,
                 StartTime = history.StartTime == default ? DateTime.UtcNow : history.StartTime,
                 EndTime = DateTime.UtcNow,
-                IsResearch = history.isResearch,
-                IpAddress = ip,
-                Country = geo.Country,
-                Region = geo.Region,
-                City = geo.City,
                 InitialSummary = isSaveUserData ? history.InitialSummary : null,
-                CurrentSummary = isSaveUserData ? history.CurrentSummary : null,
                 Question1Answer = isSaveUserData ? history.Question1Answer : null,
                 RevisionAfterQuestion1 = isSaveUserData ? history.RevisionAfterQuestion1 : null,
                 Feedback1 = isSaveUserData ? history.Feedback1 : null,
@@ -908,11 +867,6 @@ public class CriticalThinkingController : ControllerBase
 
         try
         {
-            if (string.IsNullOrWhiteSpace(userId) || !await _supabaseClient.getIsSaveUserData(userId))
-            {
-                return;
-            }
-
             var ip = GetIp();
             var geo = await GetGeoInfoFromIp(ip);
 
@@ -920,8 +874,6 @@ public class CriticalThinkingController : ControllerBase
             {
                 DateTime.UtcNow.ToString("yyyy-MM-dd"),
                 DateTime.UtcNow.ToString("HH:mm:ss"),
-                history.isResearch ? "Research" : "Regular",
-                userId,
                 history.ParticipantName,
                 ip,
                 geo.Country,
@@ -930,14 +882,59 @@ public class CriticalThinkingController : ControllerBase
                 history.InitialSummary,
                 history.Question1Answer,
                 history.RevisionAfterQuestion1,
+            };
+
+            if (includeFeedback)
+            {
+                row.Add(history.Feedback1 ?? string.Empty);
+            }
+
+            row.AddRange(new object[]
+            {
                 history.Question2Answer,
                 history.RevisionAfterQuestion2,
+            });
+
+            if (includeFeedback)
+            {
+                row.Add(history.Feedback2 ?? string.Empty);
+            }
+
+            row.AddRange(new object[]
+            {
                 history.Question3Answer,
                 history.RevisionAfterQuestion3,
+            });
+
+            if (includeFeedback)
+            {
+                row.Add(history.Feedback3 ?? string.Empty);
+            }
+
+            row.AddRange(new object[]
+            {
                 history.Question4Answer,
                 history.RevisionAfterQuestion4,
+            });
+
+            if (includeFeedback)
+            {
+                row.Add(history.Feedback4 ?? string.Empty);
+            }
+
+            row.AddRange(new object[]
+            {
                 history.Question5Answer,
                 history.RevisionAfterQuestion5,
+            });
+
+            if (includeFeedback)
+            {
+                row.Add(history.Feedback5 ?? string.Empty);
+            }
+
+            row.AddRange(new object[]
+            {
                 history.FinalSummary,
                 history.ReflectionAnswer1,
                 history.ReflectionAnswer2,

@@ -100,29 +100,11 @@ public class CoherenceController : ControllerBase
         [Column("user_id")]
         public string? UserId { get; set; }
 
-        [Column("participant_name")]
-        public string? ParticipantName { get; set; }
-
         [Column("start_time")]
         public DateTime StartTime { get; set; }
 
         [Column("end_time")]
         public DateTime EndTime { get; set; }
-
-        [Column("is_research")]
-        public bool IsResearch { get; set; }
-
-        [Column("ip_address")]
-        public string? IpAddress { get; set; }
-
-        [Column("country")]
-        public string? Country { get; set; }
-
-        [Column("region")]
-        public string? Region { get; set; }
-
-        [Column("city")]
-        public string? City { get; set; }
 
         [Column("initial_text")]
         public string? InitialText { get; set; }
@@ -227,18 +209,13 @@ public class CoherenceController : ControllerBase
             ?? Environment.GetEnvironmentVariable("COHERENCE_SPREADSHEET_ID")
             ?? string.Empty;
 
-        var defaultSheetName = configuration["CoherenceChatbot:SheetName"]
-            ?? Environment.GetEnvironmentVariable("COHERENCE_SHEET_NAME");
-
         _feedbackSheetName = configuration["CoherenceChatbot:SheetNameWithFeedback"]
             ?? Environment.GetEnvironmentVariable("COHERENCE_SHEET_NAME_WITH_FEEDBACK")
-            ?? defaultSheetName
-            ?? "results";
+            ?? string.Empty;
 
         _noFeedbackSheetName = configuration["CoherenceChatbot:SheetNameWithoutFeedback"]
             ?? Environment.GetEnvironmentVariable("COHERENCE_SHEET_NAME_NO_FEEDBACK")
-            ?? defaultSheetName
-            ?? "results";
+            ?? string.Empty;
     }
 
     [HttpPost]
@@ -402,7 +379,7 @@ public class CoherenceController : ControllerBase
                 history.Question1Choice = NormalizeClosedChoice(lastStudentMessage);
                 history.CurrentStage = 4;
 
-                if (history.Question1Choice == "yes")
+                if (history.Question1Choice == "Yes")
                 {
                     return new List<BotMessage>
                     {
@@ -514,7 +491,7 @@ public class CoherenceController : ControllerBase
                 history.Question2Choice = NormalizeClosedChoice(lastStudentMessage);
                 history.CurrentStage = 7;
 
-                if (history.Question2Choice == "yes")
+                if (history.Question2Choice == "Yes")
                 {
                     return new List<BotMessage>
                     {
@@ -626,7 +603,7 @@ public class CoherenceController : ControllerBase
                 history.Question3Choice = NormalizeClosedChoice(lastStudentMessage);
                 history.CurrentStage = 10;
 
-                if (history.Question3Choice == "yes")
+                if (history.Question3Choice == "Yes")
                 {
                     return new List<BotMessage>
                     {
@@ -738,7 +715,7 @@ public class CoherenceController : ControllerBase
                 history.Question4Choice = NormalizeClosedChoice(lastStudentMessage);
                 history.CurrentStage = 13;
 
-                if (history.Question4Choice == "yes")
+                if (history.Question4Choice == "Yes")
                 {
                     return new List<BotMessage>
                     {
@@ -851,7 +828,7 @@ public class CoherenceController : ControllerBase
                 history.Question5Choice = NormalizeClosedChoice(lastStudentMessage);
                 history.CurrentStage = 16;
 
-                if (history.Question5Choice == "yes")
+                if (history.Question5Choice == "Yes")
                 {
                     return new List<BotMessage>
                     {
@@ -1266,20 +1243,12 @@ public class CoherenceController : ControllerBase
         try
         {
             var isSaveUserData = await _supabaseClient.getIsSaveUserData(userId);
-            var ip = GetIp();
-            var geo = await GetGeoInfoFromIp(ip);
 
             var data = new CoherenceUserInteraction
             {
                 UserId = isSaveUserData ? userId : null,
-                ParticipantName = isSaveUserData ? history.ParticipantName : null,
                 StartTime = history.StartTime == default ? DateTime.UtcNow : history.StartTime,
                 EndTime = DateTime.UtcNow,
-                IsResearch = history.isResearch,
-                IpAddress = ip,
-                Country = geo.Country,
-                Region = geo.Region,
-                City = geo.City,
                 InitialText = isSaveUserData ? history.InitialText : null,
                 CurrentText = isSaveUserData ? history.CurrentText : null,
                 Question1Choice = history.Question1Choice,
@@ -1348,8 +1317,6 @@ public class CoherenceController : ControllerBase
             {
                 DateTime.UtcNow.ToString("yyyy-MM-dd"),
                 DateTime.UtcNow.ToString("HH:mm:ss"),
-                history.isResearch ? "Research" : "Regular",
-                userId,
                 history.ParticipantName,
                 ip,
                 geo.Country,
@@ -1359,18 +1326,63 @@ public class CoherenceController : ControllerBase
                 history.Question1Choice,
                 history.Question1Details,
                 history.RevisionAfterQuestion1,
+            };
+
+            if (includeFeedback)
+            {
+                row.Add(history.Feedback1 ?? string.Empty);
+            }
+
+            row.AddRange(new object[]
+            {
                 history.Question2Choice,
                 history.Question2Details,
                 history.RevisionAfterQuestion2,
+            });
+
+            if (includeFeedback)
+            {
+                row.Add(history.Feedback2 ?? string.Empty);
+            }
+
+            row.AddRange(new object[]
+            {
                 history.Question3Choice,
                 history.Question3Details,
                 history.RevisionAfterQuestion3,
+            });
+
+            if (includeFeedback)
+            {
+                row.Add(history.Feedback3 ?? string.Empty);
+            }
+
+            row.AddRange(new object[]
+            {
                 history.Question4Choice,
                 history.Question4Details,
                 history.RevisionAfterQuestion4,
+            });
+
+            if (includeFeedback)
+            {
+                row.Add(history.Feedback4 ?? string.Empty);
+            }
+
+            row.AddRange(new object[]
+            {
                 history.Question5Choice,
                 history.Question5Details,
                 history.RevisionAfterQuestion5,
+            });
+
+            if (includeFeedback)
+            {
+                row.Add(history.Feedback5 ?? string.Empty);
+            }
+
+            row.AddRange(new object[]
+            {
                 history.FinalText,
                 history.ReflectionAnswer1,
                 history.ReflectionAnswer2,

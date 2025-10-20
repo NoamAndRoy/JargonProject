@@ -364,6 +364,13 @@ public class HalfLifeController : ControllerBase
 
     private async Task<string?> SaveResultsAsync(HalfLifeConversationHistory history, string userId, bool includeFeedback, bool isResearch)
     {
+        if (isResearch)
+        {
+            var sheetName = includeFeedback ? _fullFeedbackSheetName : _noFeedbackSheetName;
+            await SaveToGoogleSheetsAsync(history, sheetName, includeFeedback);
+            return null;
+        }
+
         string? taskId = null;
 
         try
@@ -373,12 +380,6 @@ public class HalfLifeController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save HalfLife session to Supabase");
-        }
-
-        if (isResearch)
-        {
-            var sheetName = includeFeedback ? _fullFeedbackSheetName : _noFeedbackSheetName;
-            await SaveToGoogleSheetsAsync(history, sheetName, includeFeedback);
         }
 
         return taskId;

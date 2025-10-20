@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DeJargonizer2025.Helpers;
 using JargonProject.Services;
@@ -81,6 +83,7 @@ public class CoherenceController : ControllerBase
         public string Text { get; set; }
         public string InputType { get; set; } = "text";
         public List<string> TableHeaders { get; set; }
+        public List<string>? ExampleRow { get; set; }
         public int? MinRows { get; set; }
     }
 
@@ -253,6 +256,7 @@ public class CoherenceController : ControllerBase
                             Text = "Fill in at least two rows.",
                             InputType = "table",
                             TableHeaders = new List<string> { "Repeated key word/term", "# times repeated", "Additional keywords to repeat" },
+                            ExampleRow = new List<string> { "research question", "3", "participants, survey" },
                             MinRows = 2
                         }
                     };
@@ -269,6 +273,7 @@ public class CoherenceController : ControllerBase
                         Text = "Fill in at least two rows.",
                         InputType = "table",
                         TableHeaders = new List<string> { "Keywords that can be repeated" },
+                        ExampleRow = new List<string> { "data analysis" },
                         MinRows = 2
                     }
                 };
@@ -279,7 +284,7 @@ public class CoherenceController : ControllerBase
                     return new List<BotMessage> { new BotMessage { Text = "Please complete the table before moving on." } };
                 }
 
-                history.Question1Details = lastStudentMessage;
+                history.Question1Details = FormatTable(lastStudentMessage);
                 history.Feedback1 = await GenerateFeedbackAsync(1, history);
                 history.CurrentStage = 5;
 
@@ -343,6 +348,7 @@ public class CoherenceController : ControllerBase
                             Text = "Fill in at least two rows.",
                             InputType = "table",
                             TableHeaders = new List<string> { "Adverb", "Modified word", "How do adverbs help clarify" },
+                            ExampleRow = new List<string> { "carefully", "analyzed", "Shows the thorough examination process" },
                             MinRows = 2
                         }
                     };
@@ -359,6 +365,7 @@ public class CoherenceController : ControllerBase
                         Text = "Fill in at least two rows.",
                         InputType = "table",
                         TableHeaders = new List<string> { "Adverb", "Modified word", "How do adverbs help clarify" },
+                        ExampleRow = new List<string> { "carefully", "analyzed", "Shows the thorough examination process" },
                         MinRows = 2
                     }
                 };
@@ -369,7 +376,7 @@ public class CoherenceController : ControllerBase
                     return new List<BotMessage> { new BotMessage { Text = "Please complete the table before moving on." } };
                 }
 
-                history.Question2Details = lastStudentMessage;
+                history.Question2Details = FormatTable(lastStudentMessage);
                 history.Feedback2 = await GenerateFeedbackAsync(2, history);
                 history.CurrentStage = 8;
 
@@ -433,6 +440,7 @@ public class CoherenceController : ControllerBase
                             Text = "Fill in at least two rows.",
                             InputType = "table",
                             TableHeaders = new List<string> { "Word/term referred to", "Pronoun" },
+                            ExampleRow = new List<string> { "the experimental group", "they" },
                             MinRows = 2
                         }
                     };
@@ -449,6 +457,7 @@ public class CoherenceController : ControllerBase
                         Text = "Fill in at least two rows.",
                         InputType = "table",
                         TableHeaders = new List<string> { "Word/term referred to", "Pronoun" },
+                        ExampleRow = new List<string> { "the experimental group", "they" },
                         MinRows = 2
                     }
                 };
@@ -459,7 +468,7 @@ public class CoherenceController : ControllerBase
                     return new List<BotMessage> { new BotMessage { Text = "Please complete the table before moving on." } };
                 }
 
-                history.Question3Details = lastStudentMessage;
+                history.Question3Details = FormatTable(lastStudentMessage);
                 history.Feedback3 = await GenerateFeedbackAsync(3, history);
                 history.CurrentStage = 11;
 
@@ -523,6 +532,7 @@ public class CoherenceController : ControllerBase
                             Text = "Fill in at least three rows.",
                             InputType = "table",
                             TableHeaders = new List<string> { "Verb", "Verb with a similar meaning" },
+                            ExampleRow = new List<string> { "demonstrate", "illustrate" },
                             MinRows = 3
                         }
                     };
@@ -540,6 +550,7 @@ public class CoherenceController : ControllerBase
                         Text = "Fill in at least three rows.",
                         InputType = "table",
                         TableHeaders = new List<string> { "Verb", "Verb with a similar meaning" },
+                        ExampleRow = new List<string> { "demonstrate", "illustrate" },
                         MinRows = 3
                     }
                 };
@@ -550,7 +561,7 @@ public class CoherenceController : ControllerBase
                     return new List<BotMessage> { new BotMessage { Text = "Please complete the table before moving on." } };
                 }
 
-                history.Question4Details = lastStudentMessage;
+                history.Question4Details = FormatTable(lastStudentMessage);
                 history.Feedback4 = await GenerateFeedbackAsync(4, history);
                 history.CurrentStage = 14;
 
@@ -614,6 +625,7 @@ public class CoherenceController : ControllerBase
                             Text = "Fill in at least two rows.",
                             InputType = "table",
                             TableHeaders = new List<string> { "Connector", "Use" },
+                            ExampleRow = new List<string> { "Therefore", "Signals the conclusion drawn from the previous findings" },
                             MinRows = 2
                         }
                     };
@@ -631,6 +643,7 @@ public class CoherenceController : ControllerBase
                         Text = "Fill in at least two rows.",
                         InputType = "table",
                         TableHeaders = new List<string> { "Connector", "Use" },
+                        ExampleRow = new List<string> { "Therefore", "Signals the conclusion drawn from the previous findings" },
                         MinRows = 2
                     }
                 };
@@ -641,7 +654,7 @@ public class CoherenceController : ControllerBase
                     return new List<BotMessage> { new BotMessage { Text = "Please complete the table before moving on." } };
                 }
 
-                history.Question5Details = lastStudentMessage;
+                history.Question5Details = FormatTable(lastStudentMessage);
                 history.Feedback5 = await GenerateFeedbackAsync(5, history);
                 history.CurrentStage = 17;
 
@@ -856,6 +869,73 @@ public class CoherenceController : ControllerBase
             "5" => "Strongly agree",
             _ => string.Empty
         };
+    }
+
+    private string FormatTable(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return string.Empty;
+        }
+
+        var trimmed = input.Trim();
+
+        if (!trimmed.Contains("<table", StringComparison.OrdinalIgnoreCase))
+        {
+            return trimmed;
+        }
+
+        try
+        {
+            var csvBuilder = new StringBuilder();
+            var tableMatches = Regex.Matches(trimmed, "<table.*?>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            foreach (Match tableMatch in tableMatches)
+            {
+                var rows = Regex.Matches(tableMatch.Value, "<tr.*?>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+                foreach (Match row in rows)
+                {
+                    var cells = Regex.Matches(row.Groups[1].Value, "<(td|th).*?>(.*?)</\\1>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+                    if (cells.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    var values = new List<string>();
+
+                    foreach (Match cell in cells)
+                    {
+                        var cellContent = cell.Groups[2].Value;
+                        cellContent = Regex.Replace(cellContent, "<\\s*br\\s*/?>", "\n", RegexOptions.IgnoreCase);
+                        cellContent = Regex.Replace(cellContent, "<.*?>", string.Empty, RegexOptions.Singleline);
+                        cellContent = WebUtility.HtmlDecode(cellContent);
+                        cellContent = cellContent.Replace('\r', ' ').Replace('\n', ' ').Trim();
+
+                        if (cellContent.Contains(',') || cellContent.Contains('"'))
+                        {
+                            cellContent = $"\"{cellContent.Replace("\"", "\"\"")}\"";
+                        }
+
+                        values.Add(cellContent);
+                    }
+
+                    if (values.Count > 0)
+                    {
+                        csvBuilder.AppendLine(string.Join(",", values));
+                    }
+                }
+            }
+
+            var result = csvBuilder.ToString().Trim();
+            return string.IsNullOrEmpty(result) ? trimmed : result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to format table input.");
+            return trimmed;
+        }
     }
 
     private async Task<string> GenerateFeedbackAsync(int questionNumber, ConversationHistory history)

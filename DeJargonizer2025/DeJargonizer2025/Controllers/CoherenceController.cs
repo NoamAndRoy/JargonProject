@@ -71,7 +71,6 @@ public class CoherenceController : ControllerBase
         public string ReflectionAnswer1 { get; set; }
         public string ReflectionAnswer2 { get; set; }
         public string ReflectionAnswer3 { get; set; }
-        public string ReflectionAnswer4 { get; set; }
         public string ReflectionOpenResponse { get; set; }
 
         public string TaskId { get; set; }
@@ -183,9 +182,6 @@ public class CoherenceController : ControllerBase
 
         [Column("reflection_answer3")]
         public string? ReflectionAnswer3 { get; set; }
-
-        [Column("reflection_answer4")]
-        public string? ReflectionAnswer4 { get; set; }
 
         [Column("reflection_open_response")]
         public string? ReflectionOpenResponse { get; set; }
@@ -921,50 +917,40 @@ public class CoherenceController : ControllerBase
 
                 history.RevisionAfterQuestion5 = lastStudentMessage;
                 history.CurrentText = lastStudentMessage;
+                history.FinalText = lastStudentMessage;
                 history.CurrentStage = 18;
 
                 return new List<BotMessage>
                 {
-                    new BotMessage
-                    {
-                        Text = "After answering all 5 questions, please revise your summary/paragraphs and write/copy the final revised version below. (150-500 words)"
-                    }
-                };
-
-            case 18:
-                if (string.IsNullOrWhiteSpace(lastStudentMessage))
-                {
-                    return new List<BotMessage> { new BotMessage { Text = "Please provide the final 150-500 word version." } };
-                }
-
-                var finalValidation = ValidateWordCount(lastStudentMessage, 150, 500);
-                if (finalValidation != null)
-                {
-                    return new List<BotMessage> { new BotMessage { Text = finalValidation } };
-                }
-
-                history.FinalText = lastStudentMessage;
-                history.CurrentText = lastStudentMessage;
-                history.CurrentStage = 19;
-
-                return new List<BotMessage>
-                {
                     new BotMessage { Text = "Thank you! We hope you learned about improving coherence in your academic texts!" },
-                    new BotMessage { Text = "The final step is to answer four short, close-ended reflection questions about the chatbot use and one optional open question. For each statement, please select an option from a 5-point Likert scale where 1 = strongly disagree and 5 = strongly agree." },
+                    new BotMessage { Text = "The final step is to answer three short, close-ended reflection questions about the chatbot use and one optional open question. For each statement, please select an option from a 5-point Likert scale where 1 = strongly disagree and 5 = strongly agree." },
                     BuildLikertOptionsMessage("Reflection 1: The chatbot was friendly and easy to interact with.")
                 };
 
-            case 19:
+            case 18:
                 if (!IsValidLikertChoice(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 (strongly disagree) to 5 (strongly agree)." } };
                 }
 
                 history.ReflectionAnswer1 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 20;
+                history.CurrentStage = 19;
                 return new List<BotMessage>
                 {
                     BuildLikertOptionsMessage("Reflection 2: I found the chatbot challenging in a way that stimulated my writing skills.")
+                };
+
+            case 19:
+                if (!IsValidLikertChoice(lastStudentMessage))
+                {
+                    return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
+                }
+
+                history.ReflectionAnswer2 = NormalizeLikertChoice(lastStudentMessage);
+                history.CurrentStage = 20;
+                return new List<BotMessage>
+                {
+                    BuildLikertOptionsMessage("Reflection 3: The chatbot was useful for improving the quality of my writing.")
                 };
 
             case 20:
@@ -973,42 +959,16 @@ public class CoherenceController : ControllerBase
                     return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
                 }
 
-                history.ReflectionAnswer2 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 21;
-                return new List<BotMessage>
-                {
-                    BuildLikertOptionsMessage("Reflection 3: The chatbot was useful for improving the quality of my writing.")
-                };
-
-            case 21:
-                if (!IsValidLikertChoice(lastStudentMessage))
-                {
-                    return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
-                }
-
                 history.ReflectionAnswer3 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 22;
-                return new List<BotMessage>
-                {
-                    BuildLikertOptionsMessage("Reflection 4: The chatbot made the task more difficult than it needed to be.")
-                };
-
-            case 22:
-                if (!IsValidLikertChoice(lastStudentMessage))
-                {
-                    return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
-                }
-
-                history.ReflectionAnswer4 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 23;
+                history.CurrentStage = 21;
                 return new List<BotMessage>
                 {
                     new BotMessage { Text = "How did you feel while using the chatbot during your writing task? How did it help you, if it did? What did you learn about coherence and improving your academic writing?" }
                 };
 
-            case 23:
+            case 21:
                 history.ReflectionOpenResponse = lastStudentMessage ?? string.Empty;
-                history.CurrentStage = 24;
+                history.CurrentStage = 22;
 
                 if (history.isResearch)
                 {
@@ -1095,20 +1055,13 @@ public class CoherenceController : ControllerBase
 
     private bool IsValidLikertChoice(string input)
     {
-        return new List<string> { "1", "2", "3", "4", "5" }.Any(r => r == input.Trim());
+        var trimmed = input?.Trim();
+        return trimmed != null && new List<string> { "1", "2", "3", "4", "5" }.Any(r => r == trimmed);
     }
 
     private string NormalizeLikertChoice(string input)
     {
-        return input?.Trim().ToLowerInvariant() switch
-        {
-            "1" => "Strongly disagree",
-            "2" => "Disagree",
-            "3" => "Neutral",
-            "4" => "Agree",
-            "5" => "Strongly agree",
-            _ => string.Empty
-        };
+        return input?.Trim() ?? string.Empty;
     }
 
     private string FormatTable(string input)
@@ -1275,7 +1228,6 @@ public class CoherenceController : ControllerBase
                 ReflectionAnswer1 = isSaveUserData ? history.ReflectionAnswer1 : null,
                 ReflectionAnswer2 = isSaveUserData ? history.ReflectionAnswer2 : null,
                 ReflectionAnswer3 = isSaveUserData ? history.ReflectionAnswer3 : null,
-                ReflectionAnswer4 = isSaveUserData ? history.ReflectionAnswer4 : null,
                 ReflectionOpenResponse = isSaveUserData ? history.ReflectionOpenResponse : null
             };
 
@@ -1387,7 +1339,6 @@ public class CoherenceController : ControllerBase
                 history.ReflectionAnswer1,
                 history.ReflectionAnswer2,
                 history.ReflectionAnswer3,
-                history.ReflectionAnswer4,
                 history.ReflectionOpenResponse
             });
 

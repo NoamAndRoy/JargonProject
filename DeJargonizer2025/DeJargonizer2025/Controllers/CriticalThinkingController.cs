@@ -65,7 +65,6 @@ public class CriticalThinkingController : ControllerBase
         public string ReflectionAnswer1 { get; set; }
         public string ReflectionAnswer2 { get; set; }
         public string ReflectionAnswer3 { get; set; }
-        public string ReflectionAnswer4 { get; set; }
         public string ReflectionOpenResponse { get; set; }
 
         public string TaskId { get; set; }
@@ -149,9 +148,6 @@ public class CriticalThinkingController : ControllerBase
 
         [Column("reflection_answer3")]
         public string? ReflectionAnswer3 { get; set; }
-
-        [Column("reflection_answer4")]
-        public string? ReflectionAnswer4 { get; set; }
 
         [Column("reflection_open_response")]
         public string? ReflectionOpenResponse { get; set; }
@@ -600,45 +596,39 @@ public class CriticalThinkingController : ControllerBase
 
                 history.RevisionAfterQuestion5 = lastStudentMessage;
                 history.CurrentSummary = lastStudentMessage;
+                history.FinalSummary = lastStudentMessage;
                 history.CurrentStage = 13;
                 return new List<string>
                 {
-                    "After answering all 5 questions, revise your summary/paragraphs and write/copy the final revised version below. (150-500 words)"
-                };
-
-            case 13:
-                if (string.IsNullOrWhiteSpace(lastStudentMessage))
-                {
-                    return new List<string> { "Please provide the final 150-500-word version." };
-                }
-
-                var finalValidation = ValidateWordCount(lastStudentMessage, 150, 500);
-                if (finalValidation != null)
-                {
-                    return new List<string> { finalValidation };
-                }
-
-                history.FinalSummary = lastStudentMessage;
-                history.CurrentSummary = lastStudentMessage;
-                history.CurrentStage = 14;
-                return new List<string>
-                {
                     "Thank you! We hope you learned about improving your academic texts with the help of critical thinking!",
-                    "The final step is to answer four short, close-ended reflection questions about the chatbot use and one optional open question. For each statement, please select an option from a 5-point Likert scale where 1 = strongly disagree and 5 = strongly agree.",
+                    "The final step is to answer three short, close-ended reflection questions about the chatbot use and one optional open question. For each statement, please select an option from a 5-point Likert scale where 1 = strongly disagree and 5 = strongly agree.",
                     BuildLikertOptionsMessage("Reflection 1: The chatbot was friendly and easy to interact with.")
                 };
 
-            case 14:
+            case 13:
                 if (!IsValidLikertChoice(lastStudentMessage))
                 {
                     return new List<string> { "Please reply with a single number from 1 (strongly disagree) to 5 (strongly agree)." };
                 }
 
                 history.ReflectionAnswer1 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 15;
+                history.CurrentStage = 14;
                 return new List<string>
                 {
                     BuildLikertOptionsMessage("Reflection 2: I found the chatbot challenging in a way that stimulated my critical thinking.")
+                };
+
+            case 14:
+                if (!IsValidLikertChoice(lastStudentMessage))
+                {
+                    return new List<string> { "Please reply with a single number from 1 to 5." };
+                }
+
+                history.ReflectionAnswer2 = NormalizeLikertChoice(lastStudentMessage);
+                history.CurrentStage = 15;
+                return new List<string>
+                {
+                    BuildLikertOptionsMessage("Reflection 3: The chatbot was useful for improving the quality of my writing.")
                 };
 
             case 15:
@@ -647,42 +637,16 @@ public class CriticalThinkingController : ControllerBase
                     return new List<string> { "Please reply with a single number from 1 to 5." };
                 }
 
-                history.ReflectionAnswer2 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 16;
-                return new List<string>
-                {
-                    BuildLikertOptionsMessage("Reflection 3: The chatbot was useful for improving the quality of my writing.")
-                };
-
-            case 16:
-                if (!IsValidLikertChoice(lastStudentMessage))
-                {
-                    return new List<string> { "Please reply with a single number from 1 to 5." };
-                }
-
                 history.ReflectionAnswer3 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 17;
-                return new List<string>
-                {
-                    BuildLikertOptionsMessage("Reflection 4: The chatbot made the task more difficult than it needed to be.")
-                };
-
-            case 17:
-                if (!IsValidLikertChoice(lastStudentMessage))
-                {
-                    return new List<string> { "Please reply with a single number from 1 to 5." };
-                }
-
-                history.ReflectionAnswer4 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 18;
+                history.CurrentStage = 16;
                 return new List<string>
                 {
                     "How did you feel while using the chatbot during your writing task? How did it help you, if it did? What did you learn about critical thinking and improving your academic writing?"
                 };
 
-            case 18:
+            case 16:
                 history.ReflectionOpenResponse = lastStudentMessage ?? string.Empty;
-                history.CurrentStage = 19;
+                history.CurrentStage = 17;
 
                 if (history.isResearch)
                 {
@@ -737,20 +701,13 @@ public class CriticalThinkingController : ControllerBase
 
     private bool IsValidLikertChoice(string input)
     {
-        return new List<string> { "1", "2", "3", "4", "5" }.Any(r => r == input.Trim());
+        var trimmed = input?.Trim();
+        return trimmed != null && new List<string> { "1", "2", "3", "4", "5" }.Any(r => r == trimmed);
     }
 
     private string NormalizeLikertChoice(string input)
     {
-        return input?.Trim().ToLowerInvariant() switch
-        {
-            "1" => "Strongly disagree",
-            "2" => "Disagree",
-            "3" => "Neutral",
-            "4" => "Agree",
-            "5" => "Strongly agree",
-            _ => string.Empty
-        };
+        return input?.Trim() ?? string.Empty;
     }
 
     private async Task<string> GenerateFeedbackAsync(int questionNumber, ConversationHistory history)
@@ -850,7 +807,6 @@ public class CriticalThinkingController : ControllerBase
                 ReflectionAnswer1 = history.ReflectionAnswer1,
                 ReflectionAnswer2 = history.ReflectionAnswer2,
                 ReflectionAnswer3 = history.ReflectionAnswer3,
-                ReflectionAnswer4 = history.ReflectionAnswer4,
                 ReflectionOpenResponse = isSaveUserData ? history.ReflectionOpenResponse : null
             };
 
@@ -957,7 +913,6 @@ public class CriticalThinkingController : ControllerBase
                 history.ReflectionAnswer1,
                 history.ReflectionAnswer2,
                 history.ReflectionAnswer3,
-                history.ReflectionAnswer4,
                 history.ReflectionOpenResponse
             });
 

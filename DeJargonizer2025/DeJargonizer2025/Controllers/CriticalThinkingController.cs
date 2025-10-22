@@ -240,7 +240,7 @@ public class CriticalThinkingController : ControllerBase
 
                 var greeting = new List<string>
                 {
-                    "Hi, I’m your academic writing assistant. My main focus is helping you improve critical thinking in your writing. Please upload or paste your text, and I’ll guide you by asking questions that help you track and refine your writing. If any question feels unclear, you can ask me for clarification or examples."
+                    "Hi, I’m your academic writing assistant. My main focus is helping you improve critical thinking in your writing. Critical thinking helps improve academic writing by guiding writers to clarify their purpose, formulate clear questions, evaluate the accuracy and relevance of information, and present logical conclusions to build well-reasoned arguments. Please upload or paste your text, and I’ll guide you by asking questions that help you track and refine your writing. If any question feels unclear, you can ask me for clarification or examples."
                 };
 
                 if (history.isResearch)
@@ -251,7 +251,7 @@ public class CriticalThinkingController : ControllerBase
                 {
                     history.ParticipantName = null;
                     history.StartTime = DateTime.UtcNow;
-                    greeting.Add("Please provide a 150–200-word summary of your research before starting the first question.");
+                    greeting.Add("Please provide a 150-500-word summary of your research before starting the first question.");
                 }
 
                 return greeting;
@@ -263,7 +263,7 @@ public class CriticalThinkingController : ControllerBase
                     history.CurrentStage = 2;
                     return new List<string>
                     {
-                        "Please provide a 150–200-word summary of your research before starting the first question."
+                        "Please provide a 150-500-word summary of your research before starting the first question."
                     };
                 }
 
@@ -278,16 +278,16 @@ public class CriticalThinkingController : ControllerBase
                 return new List<string>
                 {
                     "Thank you.",
-                    "Please provide a 150–200-word summary of your research before starting the first question."
+                    "Please provide a 150-500-word summary of your research before starting the first question."
                 };
 
             case 2:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
-                    return new List<string> { "Please provide a 150–200-word summary of your research before starting the first question." };
+                    return new List<string> { "Please provide a 150-500-word summary of your research before starting the first question." };
                 }
 
-                var summaryValidation = ValidateWordCount(lastStudentMessage, 150, 200);
+                var summaryValidation = ValidateWordCount(lastStudentMessage, 150, 500);
                 if (summaryValidation != null)
                 {
                     return new List<string> { summaryValidation };
@@ -298,17 +298,17 @@ public class CriticalThinkingController : ControllerBase
                 history.CurrentStage = 3;
                 return new List<string>
                 {
-                    "Question 1: Please answer the question as best as possible in 1-2 sentences: The main purpose of this text is . . . (Here you are trying to state as accurately as possible your purpose for writing the article. What were you trying to accomplish?)",
-                    "Answer (30-80 words)"
+                    "Question 1: Please copy the relevant sentence/s to best answer the question: The main purpose of this text is . . . (Here you are trying to state as accurately as possible your purpose for writing the article. What were you trying to accomplish?)",
+                    "Answer (20-70 words)"
                 };
 
             case 3:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
-                    return new List<string> { "Please describe the main purpose in 30-80 words." };
+                    return new List<string> { "Please describe the main purpose in 20-70 words." };
                 }
 
-                var q1Validation = ValidateWordCount(lastStudentMessage, 30, 80);
+                var q1Validation = ValidateWordCount(lastStudentMessage, 20, 70);
                 if (q1Validation != null)
                 {
                     return new List<string> { q1Validation };
@@ -335,8 +335,8 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 var revisionPrompt1 = includeFeedback
-                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the purpose is stated clearly. (150–200 words)"
-                    : "Please write a revised version (150–200 words), using your own ideas and insights about clarifying the purpose.";
+                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the purpose is stated clearly. (150-500 words)"
+                    : "Please write a revised version (150–500 words), using your own ideas and insights about clarifying the purpose.";
 
                 responses1.Add(revisionPrompt1);
 
@@ -345,10 +345,10 @@ public class CriticalThinkingController : ControllerBase
             case 4:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
-                    return new List<string> { "Please provide a 150–200-word revision." };
+                    return new List<string> { "Please provide a 150–500-word revision." };
                 }
 
-                var revision1Validation = ValidateWordCount(lastStudentMessage, 150, 200);
+                var revision1Validation = ValidateWordCount(lastStudentMessage, 150, 500);
                 if (revision1Validation != null)
                 {
                     return new List<string> { revision1Validation };
@@ -360,16 +360,16 @@ public class CriticalThinkingController : ControllerBase
                 return new List<string>
                 {
                     "Question 2: Please answer the question as best as possible in 1-2 sentences: The key research question(s) (whether stated or unstated) at issue for this research is/are . . . (Your goal is to figure out the key question that was in your mind when you wrote the article)",
-                    "Answer (30-80 words)"
+                    "Answer (20-70 words)"
                 };
 
             case 5:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
-                    return new List<string> { "Please state the key research question(s) in 30-80 words." };
+                    return new List<string> { "Please state the key research question(s) in 20-70 words." };
                 }
 
-                var q2Validation = ValidateWordCount(lastStudentMessage, 30, 80);
+                var q2Validation = ValidateWordCount(lastStudentMessage, 20, 70);
                 if (q2Validation != null)
                 {
                     return new List<string> { q2Validation };
@@ -396,8 +396,8 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 var revisionPrompt2 = includeFeedback
-                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please try to make sure the key questions are stated clearly. (150–200 words)"
-                    : "Please write a revised version (150–200 words), drawing on your own ideas to clarify the key research questions.";
+                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please try to make sure the key questions are stated clearly. (150-500 words)"
+                    : "Please write a revised version (150-500 words), drawing on your own ideas to clarify the key research questions.";
 
                 responses2.Add(revisionPrompt2);
 
@@ -406,10 +406,10 @@ public class CriticalThinkingController : ControllerBase
             case 6:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
-                    return new List<string> { "Please share a 150–200-word revision." };
+                    return new List<string> { "Please share a 150-500-word revision." };
                 }
 
-                var revision2Validation = ValidateWordCount(lastStudentMessage, 150, 200);
+                var revision2Validation = ValidateWordCount(lastStudentMessage, 150, 500);
                 if (revision2Validation != null)
                 {
                     return new List<string> { revision2Validation };
@@ -457,8 +457,8 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 var revisionPrompt3 = includeFeedback
-                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the key information is stated clearly. (150–200 words)"
-                    : "Please write a revised version (150–200 words), focusing on clearly presenting the key information you identified.";
+                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the key information is stated clearly. (150-500 words)"
+                    : "Please write a revised version (150-500 words), focusing on clearly presenting the key information you identified.";
 
                 responses3.Add(revisionPrompt3);
 
@@ -467,10 +467,10 @@ public class CriticalThinkingController : ControllerBase
             case 8:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
-                    return new List<string> { "Please share a 150–200-word revision." };
+                    return new List<string> { "Please share a 150-500-word revision." };
                 }
 
-                var revision3Validation = ValidateWordCount(lastStudentMessage, 150, 200);
+                var revision3Validation = ValidateWordCount(lastStudentMessage, 150, 500);
                 if (revision3Validation != null)
                 {
                     return new List<string> { revision3Validation };
@@ -518,8 +518,8 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 var revisionPrompt4 = includeFeedback
-                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the conclusion is stated clearly. (150–200 words)"
-                    : "Please write a revised version (150–200 words), making sure your conclusions are clearly stated using your own insights.";
+                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the conclusion is stated clearly. (150-500 words)"
+                    : "Please write a revised version (150-500 words), making sure your conclusions are clearly stated using your own insights.";
 
                 responses4.Add(revisionPrompt4);
 
@@ -528,10 +528,10 @@ public class CriticalThinkingController : ControllerBase
             case 10:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
-                    return new List<string> { "Please share a 150–200-word revision." };
+                    return new List<string> { "Please share a 150-500-word revision." };
                 }
 
-                var revision4Validation = ValidateWordCount(lastStudentMessage, 150, 200);
+                var revision4Validation = ValidateWordCount(lastStudentMessage, 150, 500);
                 if (revision4Validation != null)
                 {
                     return new List<string> { revision4Validation };
@@ -543,16 +543,16 @@ public class CriticalThinkingController : ControllerBase
                 return new List<string>
                 {
                     "Question 5: Please answer the question as best as possible in 1-2 sentences: What is the significance of the text in the broader context? (Ask yourself: How does this work contribute to the field, and why does it matter?).",
-                    "Answer (30-80 words)"
+                    "Answer (20-70 words)"
                 };
 
             case 11:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
-                    return new List<string> { "Please explain the broader significance in 30-80 words." };
+                    return new List<string> { "Please explain the broader significance in 20-70 words." };
                 }
 
-                var q5Validation = ValidateWordCount(lastStudentMessage, 30, 80);
+                var q5Validation = ValidateWordCount(lastStudentMessage, 20, 70);
                 if (q5Validation != null)
                 {
                     return new List<string> { q5Validation };
@@ -579,8 +579,8 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 var revisionPrompt5 = includeFeedback
-                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the significance in the broader context is stated clearly. (150–200 words)"
-                    : "Please write a revised version (150–200 words), highlighting the broader significance in your own words.";
+                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the significance in the broader context is stated clearly. (150-500 words)"
+                    : "Please write a revised version (150-500 words), highlighting the broader significance in your own words.";
 
                 responses5.Add(revisionPrompt5);
 
@@ -589,10 +589,10 @@ public class CriticalThinkingController : ControllerBase
             case 12:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
-                    return new List<string> { "Please share a 150–200-word revision." };
+                    return new List<string> { "Please share a 150-500-word revision." };
                 }
 
-                var revision5Validation = ValidateWordCount(lastStudentMessage, 150, 200);
+                var revision5Validation = ValidateWordCount(lastStudentMessage, 150, 500);
                 if (revision5Validation != null)
                 {
                     return new List<string> { revision5Validation };
@@ -603,16 +603,16 @@ public class CriticalThinkingController : ControllerBase
                 history.CurrentStage = 13;
                 return new List<string>
                 {
-                    "After answering all 5 questions, revise your summary/paragraphs and write/copy the final revised version below. (150–200 words)"
+                    "After answering all 5 questions, revise your summary/paragraphs and write/copy the final revised version below. (150-500 words)"
                 };
 
             case 13:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
-                    return new List<string> { "Please provide the final 150–200-word version." };
+                    return new List<string> { "Please provide the final 150-500-word version." };
                 }
 
-                var finalValidation = ValidateWordCount(lastStudentMessage, 150, 200);
+                var finalValidation = ValidateWordCount(lastStudentMessage, 150, 500);
                 if (finalValidation != null)
                 {
                     return new List<string> { finalValidation };
@@ -780,39 +780,39 @@ public class CriticalThinkingController : ControllerBase
         switch (questionNumber)
         {
             case 1:
-                sb.AppendLine("Student's initial summary (150-200 words):");
+                sb.AppendLine("Student's initial summary (150-500 words):");
                 sb.AppendLine(history.InitialSummary ?? string.Empty);
-                sb.AppendLine("Student's answer about the main purpose (30-80 words):");
+                sb.AppendLine("Student's answer about the main purpose (20-70 words):");
                 sb.AppendLine(history.Question1Answer ?? string.Empty);
                 sb.AppendLine("Evaluate whether the summary accurately presents the purpose of the research and offer suggestions to clarify the purpose if needed.");
                 break;
             case 2:
-                sb.AppendLine("Student's revised summary (after Question 1, 150-200 words):");
+                sb.AppendLine("Student's revised summary (after Question 1, 150-500 words):");
                 sb.AppendLine(history.RevisionAfterQuestion1 ?? history.CurrentSummary ?? string.Empty);
-                sb.AppendLine("Student's key research questions answer (30-80 words):");
+                sb.AppendLine("Student's key research questions answer (20-70 words):");
                 sb.AppendLine(history.Question2Answer ?? string.Empty);
-                sb.AppendLine("Assess whether the research questions are clear and aligned with the stated purpose. Suggest ways to strengthen clarity and alignment.");
+                sb.AppendLine("Assess whether the research questions are clear and aligned with the stated purpose. Suggest ways to strengthen clarity and alignment.Give one example of an improved research question.");
                 break;
             case 3:
-                sb.AppendLine("Student's revised summary (after Question 2, 150-200 words):");
+                sb.AppendLine("Student's revised summary (after Question 2, 150-500 words):");
                 sb.AppendLine(history.RevisionAfterQuestion2 ?? history.CurrentSummary ?? string.Empty);
                 sb.AppendLine("Student's description of key information (30-100 words):");
                 sb.AppendLine(history.Question3Answer ?? string.Empty);
                 sb.AppendLine("Comment on how well the key information supports the research questions and whether additional facts/data are needed.");
                 break;
             case 4:
-                sb.AppendLine("Student's revised summary (after Question 3, 150-200 words):");
+                sb.AppendLine("Student's revised summary (after Question 3, 150-500 words):");
                 sb.AppendLine(history.RevisionAfterQuestion3 ?? history.CurrentSummary ?? string.Empty);
                 sb.AppendLine("Student's conclusions answer (30-90 words):");
                 sb.AppendLine(history.Question4Answer ?? string.Empty);
-                sb.AppendLine("Evaluate whether the conclusions address the stated questions and goals, and note if any claims need stronger support.");
+                sb.AppendLine("Do you think the conclusions clearly address the stated research questions and goals? Are there any claims in the conclusion that are not supported by the information presented? Does it leave the reader with a clear understanding of how the study advances knowledge in the field?");
                 break;
             case 5:
-                sb.AppendLine("Student's revised summary (after Question 4, 150-200 words):");
+                sb.AppendLine("Student's revised summary (after Question 4, 150-500 words):");
                 sb.AppendLine(history.RevisionAfterQuestion4 ?? history.CurrentSummary ?? string.Empty);
-                sb.AppendLine("Student's explanation of broader significance (30-80 words):");
+                sb.AppendLine("Student's explanation of broader significance (20-70 words):");
                 sb.AppendLine(history.Question5Answer ?? string.Empty);
-                sb.AppendLine("Discuss how clearly the response conveys the broader contribution and suggest improvements to highlight significance.");
+                sb.AppendLine("Do you think the work of the student advances knowledge beyond what is already known? Does it make a novel contribution to theory, methodology, or practice? Could it inform policy, future research or practice in related areas?");
                 break;
         }
 
@@ -959,7 +959,7 @@ public class CriticalThinkingController : ControllerBase
                 history.ReflectionAnswer3,
                 history.ReflectionAnswer4,
                 history.ReflectionOpenResponse
-            };
+            });
 
             await _googleSheetsService.AppendRowAsync(_spreadsheetId, sheetName, row);
         }

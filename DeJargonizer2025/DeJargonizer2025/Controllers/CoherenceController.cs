@@ -310,7 +310,7 @@ public class CoherenceController : ControllerBase
                 {
                     greetingMessages.Add(new BotMessage
                     {
-                        Text = "Please provide your full name so we can save your data for the research study."
+                        Text = "Please provide your full name so we can save your data for the course/ research study."
                     });
                 }
                 else
@@ -365,7 +365,7 @@ public class CoherenceController : ControllerBase
                 {
                     new BotMessage
                     {
-                        Text = "Question 1: Have you repeated key words/terms in a paragraph or across paragraphs to maintain topic focus?",
+                        Text = "Question 1: Please re-read your text - have you repeated key words/terms in a paragraph or across paragraphs to maintain topic focus?",
                     },
                     BuildClosedOptionsMessage()
                 };
@@ -497,14 +497,14 @@ public class CoherenceController : ControllerBase
                     {
                         new BotMessage
                         {
-                            Text = "Point out 2-3 examples where you've used adverbs and explain how they help clarify your ideas.",
+                            Text = "Point out 2-3 examples where you've used adverbs .",
                         },
                         new BotMessage
                         {
                             Text = "Fill in at least two rows.",
                             InputType = "table",
-                            TableHeaders = new List<string> { "Adverb", "Modified word", "How do adverbs help clarify" },
-                            ExampleRow = new List<string> { "carefully", "analyzed", "Shows the thorough examination process" },
+                            TableHeaders = new List<string> { "Adverb", "Modified word" },
+                            ExampleRow = new List<string> { "carefully", "analyzed" },
                             MinRows = 2
                         }
                     };
@@ -520,8 +520,8 @@ public class CoherenceController : ControllerBase
                     {
                         Text = "Fill in at least two rows.",
                         InputType = "table",
-                        TableHeaders = new List<string> { "Adverb", "Modified word", "How do adverbs help clarify" },
-                        ExampleRow = new List<string> { "carefully", "analyzed", "Shows the thorough examination process" },
+                        TableHeaders = new List<string> { "Adverb", "Modified word" },
+                        ExampleRow = new List<string> { "carefully", "analyzed" },
                         MinRows = 2
                     }
                 };
@@ -589,7 +589,7 @@ public class CoherenceController : ControllerBase
                 {
                     new BotMessage
                     {
-                        Text = "Question 3: Did you use pronouns to refer back to previously mentioned ideas without repeating the exact words?"
+                        Text = "Did you use pronouns (words that replace nouns such as, he, it, their, our, this, that) to refer back to previously mentioned ideas  without repeating the exact words?"
                     },
                     BuildClosedOptionsMessage()
                 };
@@ -615,8 +615,8 @@ public class CoherenceController : ControllerBase
                         {
                             Text = "Fill in at least two rows.",
                             InputType = "table",
-                            TableHeaders = new List<string> { "Word/term referred to", "Pronoun" },
-                            ExampleRow = new List<string> { "the experimental group", "they" },
+                            TableHeaders = new List<string> { "Pronoun", "Word/term referred to" },
+                            ExampleRow = new List<string> { "these", "20 samples" },
                             MinRows = 2
                         }
                     };
@@ -632,8 +632,8 @@ public class CoherenceController : ControllerBase
                     {
                         Text = "Fill in at least two rows.",
                         InputType = "table",
-                        TableHeaders = new List<string> { "Word/term referred to", "Pronoun" },
-                        ExampleRow = new List<string> { "the experimental group", "they" },
+                        TableHeaders = new List<string> { "Pronoun", "Word/term referred to" },
+                        ExampleRow = new List<string> { "these", "20 samples" },
                         MinRows = 2
                     }
                 };
@@ -840,8 +840,8 @@ public class CoherenceController : ControllerBase
                         {
                             Text = "Fill in at least two rows.",
                             InputType = "table",
-                            TableHeaders = new List<string> { "Connector", "Use" },
-                            ExampleRow = new List<string> { "Therefore", "Signals the conclusion drawn from the previous findings" },
+                            TableHeaders = new List<string> { "Connector", "Between sentences or paragraphs?" },
+                            ExampleRow = new List<string> { "Therefore", "paragraphs" },
                             MinRows = 2
                         }
                     };
@@ -858,8 +858,8 @@ public class CoherenceController : ControllerBase
                     {
                         Text = "Fill in at least two rows.",
                         InputType = "table",
-                        TableHeaders = new List<string> { "Connector", "Use" },
-                        ExampleRow = new List<string> { "Therefore", "Signals the conclusion drawn from the previous findings" },
+                        TableHeaders = new List<string> { "Connector", "Between sentences or paragraphs?" },
+                        ExampleRow = new List<string> { "Therefore", "sentences" },
                         MinRows = 2
                     }
                 };
@@ -1212,7 +1212,7 @@ public class CoherenceController : ControllerBase
                 promptBuilder.AppendLine($"Student answer: {history.Question3Choice}");
                 promptBuilder.AppendLine("Details provided:");
                 promptBuilder.AppendLine(history.Question3Details ?? string.Empty);
-                promptBuilder.AppendLine("Assess if pronouns clearly refer back to earlier ideas and guide on improving references.");
+                promptBuilder.AppendLine("Assess if pronouns clearly refer back to earlier ideas and guide on improving references. Please give an example of a pronoun or multiple entities that should be double checked by the student");
                 break;
             case 4:
                 promptBuilder.AppendLine();
@@ -1389,7 +1389,7 @@ public class CoherenceController : ControllerBase
                 history.ReflectionAnswer3,
                 history.ReflectionAnswer4,
                 history.ReflectionOpenResponse
-            };
+            });
 
             await _googleSheetsService.AppendRowAsync(_spreadsheetId, sheetName, row);
         }

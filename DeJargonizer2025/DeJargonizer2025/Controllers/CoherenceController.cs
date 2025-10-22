@@ -369,13 +369,13 @@ public class CoherenceController : ControllerBase
             case 3:
                 if (!IsValidClosedChoice(lastStudentMessage))
                 {
-                    return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with Yes, No, or Not sure.") };
+                    return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with 1 (Yes), 2 (No), or 3 (Not sure).") };
                 }
 
                 history.Question1Choice = NormalizeClosedChoice(lastStudentMessage);
                 history.CurrentStage = 4;
 
-                if (history.Question1Choice == "Yes")
+                if (history.Question1Choice == "1")
                 {
                     return new List<BotMessage>
                     {
@@ -481,13 +481,13 @@ public class CoherenceController : ControllerBase
             case 6:
                 if (!IsValidClosedChoice(lastStudentMessage))
                 {
-                    return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with Yes, No, or Not sure.") };
+                    return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with 1 (Yes), 2 (No), or 3 (Not sure).") };
                 }
 
                 history.Question2Choice = NormalizeClosedChoice(lastStudentMessage);
                 history.CurrentStage = 7;
 
-                if (history.Question2Choice == "Yes")
+                if (history.Question2Choice == "1")
                 {
                     return new List<BotMessage>
                     {
@@ -593,13 +593,13 @@ public class CoherenceController : ControllerBase
             case 9:
                 if (!IsValidClosedChoice(lastStudentMessage))
                 {
-                    return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with Yes, No, or Not sure.") };
+                    return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with 1 (Yes), 2 (No), or 3 (Not sure).") };
                 }
 
                 history.Question3Choice = NormalizeClosedChoice(lastStudentMessage);
                 history.CurrentStage = 10;
 
-                if (history.Question3Choice == "Yes")
+                if (history.Question3Choice == "1")
                 {
                     return new List<BotMessage>
                     {
@@ -705,13 +705,13 @@ public class CoherenceController : ControllerBase
             case 12:
                 if (!IsValidClosedChoice(lastStudentMessage))
                 {
-                    return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with Yes, No, or Not sure.") };
+                    return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with 1 (Yes), 2 (No), or 3 (Not sure).") };
                 }
 
                 history.Question4Choice = NormalizeClosedChoice(lastStudentMessage);
                 history.CurrentStage = 13;
 
-                if (history.Question4Choice == "Yes")
+                if (history.Question4Choice == "1")
                 {
                     return new List<BotMessage>
                     {
@@ -818,13 +818,13 @@ public class CoherenceController : ControllerBase
             case 15:
                 if (!IsValidClosedChoice(lastStudentMessage))
                 {
-                    return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with Yes, No, or Not sure.") };
+                    return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with 1 (Yes), 2 (No), or 3 (Not sure).") };
                 }
 
                 history.Question5Choice = NormalizeClosedChoice(lastStudentMessage);
                 history.CurrentStage = 16;
 
-                if (history.Question5Choice == "Yes")
+                if (history.Question5Choice == "1")
                 {
                     return new List<BotMessage>
                     {
@@ -877,67 +877,46 @@ public class CoherenceController : ControllerBase
                     history.Feedback5 = null;
                 }
 
+                history.FinalText = history.CurrentText;
                 history.CurrentStage = 17;
 
-                var revisionIntro5 = includeFeedback
-                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
-                    : "Please write a revised version, incorporating your own ideas and what you noticed about your connectors.";
-
-                var responses5 = new List<BotMessage>
-                {
-                    new BotMessage
-                    {
-                        Text = revisionIntro5
-                    }
-                };
+                var reflectionIntroMessages = new List<BotMessage>();
 
                 if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback5))
                 {
-                    responses5.Add(new BotMessage { Text = history.Feedback5 });
+                    reflectionIntroMessages.Add(new BotMessage { Text = history.Feedback5 });
                 }
 
-                responses5.Add(new BotMessage
-                {
-                    Text = "Please provide your revised text (150-500 words)."
-                });
+                reflectionIntroMessages.Add(new BotMessage { Text = "Thank you! We hope you learned about improving coherence in your academic texts!" });
+                reflectionIntroMessages.Add(new BotMessage { Text = "The final step is to answer three short, close-ended reflection questions about the chatbot use and one optional open question. For each statement, please select an option from a 5-point Likert scale where 1 = strongly disagree and 5 = strongly agree." });
+                reflectionIntroMessages.Add(BuildLikertOptionsMessage("Reflection 1: The chatbot was friendly and easy to interact with."));
 
-                return responses5;
+                return reflectionIntroMessages;
 
             case 17:
-                if (string.IsNullOrWhiteSpace(lastStudentMessage))
-                {
-                    return new List<BotMessage> { new BotMessage { Text = "Please provide a 150-500 word revision." } };
-                }
-
-                var revision5Validation = ValidateWordCount(lastStudentMessage, 150, 500);
-                if (revision5Validation != null)
-                {
-                    return new List<BotMessage> { new BotMessage { Text = revision5Validation } };
-                }
-
-                history.RevisionAfterQuestion5 = lastStudentMessage;
-                history.CurrentText = lastStudentMessage;
-                history.FinalText = lastStudentMessage;
-                history.CurrentStage = 18;
-
-                return new List<BotMessage>
-                {
-                    new BotMessage { Text = "Thank you! We hope you learned about improving coherence in your academic texts!" },
-                    new BotMessage { Text = "The final step is to answer three short, close-ended reflection questions about the chatbot use and one optional open question. For each statement, please select an option from a 5-point Likert scale where 1 = strongly disagree and 5 = strongly agree." },
-                    BuildLikertOptionsMessage("Reflection 1: The chatbot was friendly and easy to interact with.")
-                };
-
-            case 18:
                 if (!IsValidLikertChoice(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 (strongly disagree) to 5 (strongly agree)." } };
                 }
 
                 history.ReflectionAnswer1 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 19;
+                history.CurrentStage = 18;
                 return new List<BotMessage>
                 {
                     BuildLikertOptionsMessage("Reflection 2: I found the chatbot challenging in a way that stimulated my writing skills.")
+                };
+
+            case 18:
+                if (!IsValidLikertChoice(lastStudentMessage))
+                {
+                    return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
+                }
+
+                history.ReflectionAnswer2 = NormalizeLikertChoice(lastStudentMessage);
+                history.CurrentStage = 19;
+                return new List<BotMessage>
+                {
+                    BuildLikertOptionsMessage("Reflection 3: The chatbot was useful for improving the quality of my writing.")
                 };
 
             case 19:
@@ -946,29 +925,16 @@ public class CoherenceController : ControllerBase
                     return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
                 }
 
-                history.ReflectionAnswer2 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 20;
-                return new List<BotMessage>
-                {
-                    BuildLikertOptionsMessage("Reflection 3: The chatbot was useful for improving the quality of my writing.")
-                };
-
-            case 20:
-                if (!IsValidLikertChoice(lastStudentMessage))
-                {
-                    return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
-                }
-
                 history.ReflectionAnswer3 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 21;
+                history.CurrentStage = 20;
                 return new List<BotMessage>
                 {
                     new BotMessage { Text = "How did you feel while using the chatbot during your writing task? How did it help you, if it did? What did you learn about coherence and improving your academic writing?" }
                 };
 
-            case 21:
+            case 20:
                 history.ReflectionOpenResponse = lastStudentMessage ?? string.Empty;
-                history.CurrentStage = 22;
+                history.CurrentStage = 21;
 
                 if (history.isResearch)
                 {
@@ -1045,12 +1011,7 @@ public class CoherenceController : ControllerBase
 
     private string NormalizeClosedChoice(string lastStudentMessage)
     {
-        return lastStudentMessage switch
-        {
-            "1" => "Yes",
-            "2" => "No",
-            "3" => "Not sure",
-        };
+        return lastStudentMessage?.Trim() ?? string.Empty;
     }
 
     private bool IsValidLikertChoice(string input)

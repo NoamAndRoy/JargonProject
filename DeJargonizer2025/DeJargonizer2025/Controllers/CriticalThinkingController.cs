@@ -236,7 +236,7 @@ public class CriticalThinkingController : ControllerBase
 
                 var greeting = new List<string>
                 {
-                    "Hi, I’m your academic writing assistant. My main focus is helping you improve critical thinking in your writing. Critical thinking helps improve academic writing by guiding writers to clarify their purpose, formulate clear questions, evaluate the accuracy and relevance of information, and present logical conclusions to build well-reasoned arguments. Please upload or paste your text, and I’ll guide you by asking questions that help you track and refine your writing. If any question feels unclear, you can ask me for clarification or examples."
+                    "Hi, I’m your academic writing assistant. My main focus is helping you improve critical thinking in your writing. Critical thinking helps improve academic writing by guiding writers to clarify their purpose, formulate clear questions, evaluate the accuracy and relevance of information, and present logical conclusions to build well-reasoned arguments. Please upload or paste your text, and I’ll guide you by asking questions that help you track and refine your writing."
                 };
 
                 if (history.isResearch)

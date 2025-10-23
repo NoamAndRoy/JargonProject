@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|d:\\royosef\\projects\\jargonproject\\dejargonizer2025\\dejargonizer2025\\controllers\\criticalthinkingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|solutionrelative:dejargonizer2025\\controllers\\criticalthinkingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|d:\\royosef\\projects\\jargonproject\\dejargonizer2025\\dejargonizer2025\\controllers\\coherencecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|solutionrelative:dejargonizer2025\\controllers\\coherencecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|d:\\royosef\\projects\\jargonproject\\dejargonizer2025\\dejargonizer2025\\controllers\\criticalthinkingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|solutionrelative:dejargonizer2025\\controllers\\criticalthinkingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|d:\\royosef\\projects\\jargonproject\\dejargonizer2025\\dejargonizer2025\\controllers\\halflifecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -58,7 +58,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 325,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
@@ -107,26 +107,26 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "CoherenceController.cs",
               "DocumentMoniker": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\CoherenceController.cs",
               "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\CoherenceController.cs",
               "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\CoherenceController.cs",
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\CoherenceController.cs",
-              "ViewState": "AgIAAFQFAAAAAAAAAAAuwG8FAAAOAAAAAAAAAA==",
+              "ViewState": "AgIAAOwDAAAAAAAAAAArwPMDAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-18T11:18:08.561Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "CriticalThinkingController.cs",
               "DocumentMoniker": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\CriticalThinkingController.cs",
               "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\CriticalThinkingController.cs",
               "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\CriticalThinkingController.cs",
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\CriticalThinkingController.cs",
-              "ViewState": "AgIAAK8DAAAAAAAAAAAuwLEDAAAvAAAAAAAAAA==",
+              "ViewState": "AgIAALQCAAAAAAAAAADgv7YCAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-18T21:55:11.03Z",
               "EditorCaption": ""

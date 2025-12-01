@@ -43,6 +43,8 @@ public class CoherenceController : ControllerBase
 
         public string Question1Choice { get; set; }
         public string Question1Details { get; set; }
+        public string Question1PartBChoice { get; set; }
+        public string Question1PartBDetails { get; set; }
         public string Feedback1 { get; set; }
         public string RevisionAfterQuestion1 { get; set; }
 
@@ -361,7 +363,7 @@ public class CoherenceController : ControllerBase
                 {
                     new BotMessage
                     {
-                        Text = "Question 1: Please re-read your text - have you repeated key words/terms in a paragraph or across paragraphs to maintain topic focus?",
+                        Text = "Question 1 (A): Have you repeated identical (the same) key words/terms (e.g., effect – effect) in a paragraph or across paragraphs that reflect the main idea of your text and maintain topic focus?",
                     },
                     BuildClosedOptionsMessage()
                 };
@@ -381,14 +383,14 @@ public class CoherenceController : ControllerBase
                     {
                         new BotMessage
                         {
-                            Text = "Please give an example, including the word/s that are repeated and how many times repeated words occur. Copy-paste the shared or related words in these paragraphs or from your abstract, and list additional keywords that may also need to be repeated to improve coherence.",
+                            Text = "Please give an example, including the word/s that are repeated and how many times repeated words occur. Copy-paste the shared or related words in these 2-3 consecutive paragraphs or from your abstract. List also additional keywords that you think may also need to be repeated to improve coherence.",
                         },
                         new BotMessage
                         {
                             Text = "Fill in at least two rows.",
                             InputType = "table",
-                            TableHeaders = new List<string> { "Repeated key word/term", "# times repeated", "Additional keywords to repeat" },
-                            ExampleRow = new List<string> { "research question", "3", "participants, survey" },
+                            TableHeaders = new List<string> { "Repeated key word/term", "# times repeated" },
+                            ExampleRow = new List<string> { "research question", "3" },
                             MinRows = 2
                         }
                     };
@@ -418,6 +420,69 @@ public class CoherenceController : ControllerBase
 
                 history.Question1Details = FormatTable(lastStudentMessage);
 
+                history.CurrentStage = 5;
+
+                return new List<BotMessage>
+                {
+                    new BotMessage
+                    {
+                        Text = "I will now move to part B of question 1. Did you use a variety of nouns with similar meanings (e.g., investigation - examination) to describe similar actions or processes throughout the text?",
+                    },
+                    BuildClosedOptionsMessage()
+                };
+
+            case 5:
+                if (!IsValidClosedChoice(lastStudentMessage))
+                {
+                    return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with 1 (Yes), 2 (No), or 3 (Not sure).") };
+                }
+
+                history.Question1PartBChoice = NormalizeClosedChoice(lastStudentMessage);
+                history.CurrentStage = 6;
+
+                if (history.Question1PartBChoice == "1")
+                {
+                    return new List<BotMessage>
+                    {
+                        new BotMessage
+                        {
+                            Text = "List at least two pairs of nouns/ noun phrases used in different sentences/ paragraphs that are synonyms or related in meaning (e.g., a broad array and a wide range).",
+                        },
+                        new BotMessage
+                        {
+                            Text = "Fill in at least three rows.",
+                            InputType = "table",
+                            TableHeaders = new List<string> { "Noun/ noun phrase", "Noun/ noun phrase with a similar meaning" },
+                            ExampleRow = new List<string> { "investigation", "examination" },
+                            MinRows = 3
+                        }
+                    };
+                }
+
+                return new List<BotMessage>
+                {
+                    new BotMessage
+                    {
+                        Text = "Please list 3-4 different nouns or noun phrases (i.e. adjective and noun, such as \"significant differences\") you have used in your text. Please list which nouns/noun phrases could be replaced by nouns/ noun phrases with a similar meaning. After you list them below, please incorporate them in your text.",
+                    },
+                    new BotMessage
+                    {
+                        Text = "Fill in at least three rows.",
+                        InputType = "table",
+                        TableHeaders = new List<string> { "Noun/ noun phrase", "Noun/ noun phrase with a similar meaning" },
+                        ExampleRow = new List<string> { "investigation", "examination" },
+                        MinRows = 3
+                    }
+                };
+
+            case 6:
+                if (string.IsNullOrWhiteSpace(lastStudentMessage))
+                {
+                    return new List<BotMessage> { new BotMessage { Text = "Please complete the table before moving on." } };
+                }
+
+                history.Question1PartBDetails = FormatTable(lastStudentMessage);
+
                 if (includeFeedback)
                 {
                     history.Feedback1 = await GenerateFeedbackAsync(1, history);
@@ -427,11 +492,11 @@ public class CoherenceController : ControllerBase
                     history.Feedback1 = null;
                 }
 
-                history.CurrentStage = 5;
+                history.CurrentStage = 7;
 
                 var revisionIntro1 = includeFeedback
-                    ? "These are some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from AI Chatbot if they are relevant."
-                    : "Please write a revised version, incorporating your own ideas and what you observed while completing the table.";
+                    ? "I have some suggestions to improve your text. Based on the feedback you received, please write a revised version, incorporating your own ideas - and suggestions given here from the chatbot if they are relevant."
+                    : "Please write a revised version, incorporating your own ideas and what you observed while completing the tables.";
 
                 var responses1 = new List<BotMessage>
                 {
@@ -453,7 +518,7 @@ public class CoherenceController : ControllerBase
 
                 return responses1;
 
-            case 5:
+            case 7:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please provide a 150-500 word revision." } };
@@ -467,25 +532,25 @@ public class CoherenceController : ControllerBase
 
                 history.RevisionAfterQuestion1 = lastStudentMessage;
                 history.CurrentText = lastStudentMessage;
-                history.CurrentStage = 6;
+                history.CurrentStage = 8;
 
                 return new List<BotMessage>
                 {
                     new BotMessage
                     {
-                        Text = "Question 2: Have you used adverbs (words that modify or qualify other verbs) to give precise information, offering clarity and elaboration?"
+                        Text = "Question 2: Adverbs are words that modify or qualify other verbs, e.g., words ending in -ly like widely in \"widely accepted\"; increasingly in \"increasingly important\" to give precise information and create clear and concise ideas. Have you used adverbs?",
                     },
-                    BuildClosedOptionsMessage()
+                    BuildClosedOptionsMessage(),
                 };
 
-            case 6:
+            case 8:
                 if (!IsValidClosedChoice(lastStudentMessage))
                 {
                     return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with 1 (Yes), 2 (No), or 3 (Not sure).") };
                 }
 
                 history.Question2Choice = NormalizeClosedChoice(lastStudentMessage);
-                history.CurrentStage = 7;
+                history.CurrentStage = 9;
 
                 if (history.Question2Choice == "1")
                 {
@@ -493,14 +558,14 @@ public class CoherenceController : ControllerBase
                     {
                         new BotMessage
                         {
-                            Text = "Point out 2-3 examples where you've used adverbs .",
+                            Text = "Point out 2-3 examples where you've used such adverbs. For example: X significantly increased the amount of Y -The adverb significantly shows the extent of impact.",
                         },
                         new BotMessage
                         {
                             Text = "Fill in at least two rows.",
                             InputType = "table",
-                            TableHeaders = new List<string> { "Adverb", "Modified word" },
-                            ExampleRow = new List<string> { "carefully", "analyzed" },
+                            TableHeaders = new List<string> { "Adverb", "Verbs and adjectives" },
+                            ExampleRow = new List<string> { "significantly", "increased" },
                             MinRows = 2
                         }
                     };
@@ -510,19 +575,19 @@ public class CoherenceController : ControllerBase
                 {
                     new BotMessage
                     {
-                        Text = "Look at all of your verbs and list potential adverbs that could improve your text.",
+                        Text = "Look at all of your verbs and adjectives, and list potential adverbs that could improve your text.",
                     },
                     new BotMessage
                     {
                         Text = "Fill in at least two rows.",
                         InputType = "table",
-                        TableHeaders = new List<string> { "Adverb", "Modified word" },
-                        ExampleRow = new List<string> { "carefully", "analyzed" },
+                        TableHeaders = new List<string> { "Potential adverb", "Verbs and adjectives" },
+                        ExampleRow = new List<string> { "significantly", "increased" },
                         MinRows = 2
                     }
                 };
 
-            case 7:
+            case 9:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please complete the table before moving on." } };
@@ -539,10 +604,10 @@ public class CoherenceController : ControllerBase
                     history.Feedback2 = null;
                 }
 
-                history.CurrentStage = 8;
+                history.CurrentStage = 10;
 
                 var revisionIntro2 = includeFeedback
-                    ? "These are some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
+                    ? "I have some suggestions to improve your text. Based on the feedback you received, please write a revised version, incorporating your own ideas - and suggestions given here from the chatbot if they are relevant."
                     : "Please write a revised version, incorporating your own ideas and what you noticed while analyzing your adverb use.";
 
                 var responses2 = new List<BotMessage>
@@ -565,7 +630,7 @@ public class CoherenceController : ControllerBase
 
                 return responses2;
 
-            case 8:
+            case 10:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please provide a 150-500 word revision." } };
@@ -579,25 +644,25 @@ public class CoherenceController : ControllerBase
 
                 history.RevisionAfterQuestion2 = lastStudentMessage;
                 history.CurrentText = lastStudentMessage;
-                history.CurrentStage = 9;
+                history.CurrentStage = 11;
 
                 return new List<BotMessage>
                 {
                     new BotMessage
                     {
-                        Text = "Question 3: Did you use pronouns (words that replace nouns such as, he, it, their, our, this, that) to refer back to previously mentioned ideas  without repeating the exact words?"
+                        Text = "Question 3: Did you use pronouns? Pronouns are words that replace nouns such as, he, it, their, our, this, that to refer back to previously mentioned ideas (in a previous sentence/ paragraph) without repeating the exact words.",
                     },
-                    BuildClosedOptionsMessage()
+                    BuildClosedOptionsMessage(),
                 };
 
-            case 9:
+            case 11:
                 if (!IsValidClosedChoice(lastStudentMessage))
                 {
                     return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with 1 (Yes), 2 (No), or 3 (Not sure).") };
                 }
 
                 history.Question3Choice = NormalizeClosedChoice(lastStudentMessage);
-                history.CurrentStage = 10;
+                history.CurrentStage = 12;
 
                 if (history.Question3Choice == "1")
                 {
@@ -605,14 +670,14 @@ public class CoherenceController : ControllerBase
                     {
                         new BotMessage
                         {
-                            Text = "Mention 2-3 pronouns from your text and explain the specific idea or noun they refer to.",
+                            Text = "Mention 2-3 pronouns from your text and explain what specific ideas or nouns they refer to. Be sure each one is clearly connected.",
                         },
                         new BotMessage
                         {
                             Text = "Fill in at least two rows.",
                             InputType = "table",
-                            TableHeaders = new List<string> { "Pronoun", "Word/term referred to" },
-                            ExampleRow = new List<string> { "these", "20 samples" },
+                            TableHeaders = new List<string> { "Word/term referred to", "Pronoun" },
+                            ExampleRow = new List<string> { "20 samples", "these" },
                             MinRows = 2
                         }
                     };
@@ -622,19 +687,19 @@ public class CoherenceController : ControllerBase
                 {
                     new BotMessage
                     {
-                        Text = "Please list the keywords (nouns) you have repeated and which pronoun could replace them in some sentences.",
+                        Text = "Please list the keywords (nouns) you have repeated and what pronoun could replace them in some sentences.",
                     },
                     new BotMessage
                     {
                         Text = "Fill in at least two rows.",
                         InputType = "table",
-                        TableHeaders = new List<string> { "Pronoun", "Word/term referred to" },
-                        ExampleRow = new List<string> { "these", "20 samples" },
+                        TableHeaders = new List<string> { "Word/term referred to", "Pronoun" },
+                        ExampleRow = new List<string> { "20 samples", "these" },
                         MinRows = 2
                     }
                 };
 
-            case 10:
+            case 12:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please complete the table before moving on." } };
@@ -651,10 +716,10 @@ public class CoherenceController : ControllerBase
                     history.Feedback3 = null;
                 }
 
-                history.CurrentStage = 11;
+                history.CurrentStage = 13;
 
                 var revisionIntro3 = includeFeedback
-                    ? "These are some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
+                    ? "I have some suggestions to improve your text. Based on the feedback you received, please write a revised version, incorporating your own ideas - and suggestions given here from the chatbot if they are relevant."
                     : "Please write a revised version, incorporating your own ideas and what you noticed while reviewing your pronoun usage.";
 
                 var responses3 = new List<BotMessage>
@@ -676,8 +741,7 @@ public class CoherenceController : ControllerBase
                 });
 
                 return responses3;
-
-            case 11:
+            case 13:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please provide a 150-500 word revision." } };
@@ -691,7 +755,7 @@ public class CoherenceController : ControllerBase
 
                 history.RevisionAfterQuestion3 = lastStudentMessage;
                 history.CurrentText = lastStudentMessage;
-                history.CurrentStage = 12;
+                history.CurrentStage = 14;
 
                 return new List<BotMessage>
                 {
@@ -702,14 +766,14 @@ public class CoherenceController : ControllerBase
                     BuildClosedOptionsMessage()
                 };
 
-            case 12:
+            case 14:
                 if (!IsValidClosedChoice(lastStudentMessage))
                 {
                     return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with 1 (Yes), 2 (No), or 3 (Not sure).") };
                 }
 
                 history.Question4Choice = NormalizeClosedChoice(lastStudentMessage);
-                history.CurrentStage = 13;
+                history.CurrentStage = 15;
 
                 if (history.Question4Choice == "1")
                 {
@@ -717,7 +781,7 @@ public class CoherenceController : ControllerBase
                     {
                         new BotMessage
                         {
-                            Text = "List at least three pairs of verbs used in different sentences or paragraphs that are synonyms or closely related in meaning.",
+                            Text = "List at least two pairs of verbs used in different sentences/ paragraphs that are synonyms or related in meaning (e.g., demonstrate and illustrate)."
                         },
                         new BotMessage
                         {
@@ -734,8 +798,7 @@ public class CoherenceController : ControllerBase
                 {
                     new BotMessage
                     {
-                        Text = "Please list 3-4 different verbs you have used in your text and suggest verbs with a similar meaning that could replace them.",
-
+                        Text = "Please list 3-4 different verbs you have used in your text. Please list which verbs could be replaced by verbs with a similar meaning. After you list them below, please incorporate them in your text."
                     },
                     new BotMessage
                     {
@@ -747,7 +810,7 @@ public class CoherenceController : ControllerBase
                     }
                 };
 
-            case 13:
+            case 15:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please complete the table before moving on." } };
@@ -764,7 +827,7 @@ public class CoherenceController : ControllerBase
                     history.Feedback4 = null;
                 }
 
-                history.CurrentStage = 14;
+                history.CurrentStage = 16;
 
                 var revisionIntro4 = includeFeedback
                     ? "These are some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
@@ -790,7 +853,7 @@ public class CoherenceController : ControllerBase
 
                 return responses4;
 
-            case 14:
+            case 16:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please provide a 150-500 word revision." } };
@@ -804,7 +867,7 @@ public class CoherenceController : ControllerBase
 
                 history.RevisionAfterQuestion4 = lastStudentMessage;
                 history.CurrentText = lastStudentMessage;
-                history.CurrentStage = 15;
+                history.CurrentStage = 17;
 
                 return new List<BotMessage>
                 {
@@ -815,14 +878,14 @@ public class CoherenceController : ControllerBase
                     BuildClosedOptionsMessage()
                 };
 
-            case 15:
+            case 17:
                 if (!IsValidClosedChoice(lastStudentMessage))
                 {
                     return new List<BotMessage> { BuildClosedOptionsMessage("Please reply with 1 (Yes), 2 (No), or 3 (Not sure).") };
                 }
 
                 history.Question5Choice = NormalizeClosedChoice(lastStudentMessage);
-                history.CurrentStage = 16;
+                history.CurrentStage = 18;
 
                 if (history.Question5Choice == "1")
                 {
@@ -830,7 +893,7 @@ public class CoherenceController : ControllerBase
                     {
                         new BotMessage
                         {
-                            Text = "Mention 2-3 connectors used between sentences or paragraphs and show the connection they create.",
+                            Text = "Mention 2-3 connectors used between sentences or paragraphs and show the connection they create."
                         },
                         new BotMessage
                         {
@@ -860,7 +923,7 @@ public class CoherenceController : ControllerBase
                     }
                 };
 
-            case 16:
+            case 18:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please complete the table before moving on." } };
@@ -877,7 +940,7 @@ public class CoherenceController : ControllerBase
                     history.Feedback5 = null;
                 }
 
-                history.CurrentStage = 17;
+                history.CurrentStage = 19;
 
                 var revisionIntro5 = includeFeedback
                     ? "These are some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
@@ -903,7 +966,7 @@ public class CoherenceController : ControllerBase
 
                 return responses5;
 
-            case 17:
+            case 19:
                 if (string.IsNullOrWhiteSpace(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please provide a 150-500 word revision." } };
@@ -918,7 +981,7 @@ public class CoherenceController : ControllerBase
                 history.RevisionAfterQuestion5 = lastStudentMessage;
                 history.CurrentText = lastStudentMessage;
                 history.FinalText = lastStudentMessage;
-                history.CurrentStage = 18;
+                history.CurrentStage = 20;
 
                 return new List<BotMessage>
                 {
@@ -927,48 +990,48 @@ public class CoherenceController : ControllerBase
                     BuildLikertOptionsMessage("Reflection 1: The chatbot was friendly and easy to interact with.")
                 };
 
-            case 18:
+            case 20:
                 if (!IsValidLikertChoice(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 (strongly disagree) to 5 (strongly agree)." } };
                 }
 
                 history.ReflectionAnswer1 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 19;
+                history.CurrentStage = 21;
                 return new List<BotMessage>
                 {
                     BuildLikertOptionsMessage("Reflection 2: I found the chatbot challenging in a way that stimulated my writing skills.")
                 };
 
-            case 19:
+            case 21:
                 if (!IsValidLikertChoice(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
                 }
 
                 history.ReflectionAnswer2 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 20;
+                history.CurrentStage = 22;
                 return new List<BotMessage>
                 {
                     BuildLikertOptionsMessage("Reflection 3: The chatbot was useful for improving the quality of my writing.")
                 };
 
-            case 20:
+            case 22:
                 if (!IsValidLikertChoice(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
                 }
 
                 history.ReflectionAnswer3 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 21;
+                history.CurrentStage = 23;
                 return new List<BotMessage>
                 {
                     new BotMessage { Text = "How did you feel while using the chatbot during your writing task? How did it help you, if it did? What did you learn about coherence and improving your academic writing?" }
                 };
 
-            case 21:
+            case 23:
                 history.ReflectionOpenResponse = lastStudentMessage ?? string.Empty;
-                history.CurrentStage = 22;
+                history.CurrentStage = 24;
 
                 if (history.isResearch)
                 {
@@ -983,7 +1046,6 @@ public class CoherenceController : ControllerBase
                 {
                     new BotMessage { Text = "Thank you for sharing your reflections. Your responses have been recorded." }
                 };
-
             default:
                 return new List<BotMessage>
                 {
@@ -1144,6 +1206,13 @@ public class CoherenceController : ControllerBase
                 promptBuilder.AppendLine($"Student answer: {history.Question1Choice}");
                 promptBuilder.AppendLine("Details provided:");
                 promptBuilder.AppendLine(history.Question1Details ?? string.Empty);
+                if (!string.IsNullOrWhiteSpace(history.Question1PartBChoice) || !string.IsNullOrWhiteSpace(history.Question1PartBDetails))
+                {
+                    promptBuilder.AppendLine("Part B (variety of nouns with similar meanings):");
+                    promptBuilder.AppendLine($"Student answer: {history.Question1PartBChoice}");
+                    promptBuilder.AppendLine("Details provided:");
+                    promptBuilder.AppendLine(history.Question1PartBDetails ?? string.Empty);
+                }
                 promptBuilder.AppendLine("Evaluate whether the student is repeating key terms to maintain topic focus and suggest improvements if needed.");
                 break;
             case 2:

@@ -30,7 +30,8 @@ public class HalfLifeController : ControllerBase
     {
         { 120, (100, 140) },
         { 60, (45, 75) },
-        { 30, (20, 40) }
+        { 30, (20, 40) },
+        { 2, (2, 20) }
     };
 
     [Table("halflife_user_interactions")]
@@ -273,7 +274,7 @@ public class HalfLifeController : ControllerBase
                     return new List<string> { AudiencePrompt() };
                 }
 
-                if (!string.IsNullOrWhiteSpace(lastUserMessage))
+                if (!string.IsNullOrWhiteSpace(lastUserMessage) && ValidateWordCount(lastUserMessage, 2) == null)
                 {
                     history.StudentName = lastUserMessage.Trim();
                     history.CurrentStage = 2;

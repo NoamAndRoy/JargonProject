@@ -263,7 +263,7 @@ public class CriticalThinkingController : ControllerBase
                     };
                 }
 
-                if (string.IsNullOrWhiteSpace(lastStudentMessage))
+                if (string.IsNullOrWhiteSpace(lastStudentMessage) || ValidateWordCount(lastStudentMessage, 2, 20) != null)
                 {
                     return new List<string> { "Please provide the name you would like us to record." };
                 }
@@ -331,7 +331,7 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 var revisionPrompt1 = includeFeedback
-                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the purpose is stated clearly. (150-500 words)"
+                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from AI Chatbot if they are relevant. Please make sure the purpose is stated clearly. (150-500 words)"
                     : "Please write a revised version (150–500 words), using your own ideas and insights about clarifying the purpose.";
 
                 responses1.Add(revisionPrompt1);
@@ -392,7 +392,7 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 var revisionPrompt2 = includeFeedback
-                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please try to make sure the key questions are stated clearly. (150-500 words)"
+                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from AI Chatbot if they are relevant. Please try to make sure the key questions are stated clearly. (150-500 words)"
                     : "Please write a revised version (150-500 words), drawing on your own ideas to clarify the key research questions.";
 
                 responses2.Add(revisionPrompt2);
@@ -453,7 +453,7 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 var revisionPrompt3 = includeFeedback
-                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the key information is stated clearly. (150-500 words)"
+                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from AI Chatbot if they are relevant. Please make sure the key information is stated clearly. (150-500 words)"
                     : "Please write a revised version (150-500 words), focusing on clearly presenting the key information you identified.";
 
                 responses3.Add(revisionPrompt3);
@@ -514,7 +514,7 @@ public class CriticalThinkingController : ControllerBase
                 }
 
                 var revisionPrompt4 = includeFeedback
-                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant. Please make sure the conclusion is stated clearly. (150-500 words)"
+                    ? "These are some suggestionst to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from AI Chatbot if they are relevant. Please make sure the conclusion is stated clearly. (150-500 words)"
                     : "Please write a revised version (150-500 words), making sure your conclusions are clearly stated using your own insights.";
 
                 responses4.Add(revisionPrompt4);

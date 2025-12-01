@@ -7,16 +7,16 @@
       "RelativeMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|solutionrelative:dejargonizer2025\\controllers\\coherencecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|d:\\royosef\\projects\\jargonproject\\dejargonizer2025\\dejargonizer2025\\.env||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|solutionrelative:dejargonizer2025\\.env||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|d:\\royosef\\projects\\jargonproject\\dejargonizer2025\\dejargonizer2025\\controllers\\criticalthinkingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|solutionrelative:dejargonizer2025\\controllers\\criticalthinkingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|d:\\royosef\\projects\\jargonproject\\dejargonizer2025\\dejargonizer2025\\controllers\\halflifecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|solutionrelative:dejargonizer2025\\controllers\\halflifecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|d:\\royosef\\projects\\jargonproject\\dejargonizer2025\\dejargonizer2025\\.env||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|solutionrelative:dejargonizer2025\\.env||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|d:\\royosef\\projects\\jargonproject\\dejargonizer2025\\dejargonizer2025\\controllers\\textgradingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -47,8 +47,8 @@
       "RelativeMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|solutionrelative:dejargonizer2025\\helpers\\gptapiclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Helpers\\IpHelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:DeJargonizer2025\\Helpers\\IpHelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|d:\\royosef\\projects\\jargonproject\\dejargonizer2025\\dejargonizer2025\\helpers\\iphelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{66BC749F-3FCD-4EF0-A8D7-855F254961E0}|DeJargonizer2025\\DeJargonizer2025.csproj|solutionrelative:dejargonizer2025\\helpers\\iphelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -62,17 +62,16 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 1,
               "Title": ".env",
               "DocumentMoniker": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\.env",
               "RelativeDocumentMoniker": "DeJargonizer2025\\.env",
               "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\.env",
               "RelativeToolTip": "DeJargonizer2025\\.env",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAABAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2025-03-31T10:10:42.945Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -85,8 +84,7 @@
               "ViewState": "AgIAAFMAAAAAAAAAAAAswGwAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-10T05:11:33.277Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Bookmark",
@@ -94,7 +92,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "HalfLifeController.cs",
               "DocumentMoniker": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\HalfLifeController.cs",
               "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\HalfLifeController.cs",
@@ -102,8 +100,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\HalfLifeController.cs",
               "ViewState": "AgIAACkBAAAAAAAAAAAqwJQBAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-18T20:45:21.991Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-18T20:45:21.991Z"
             },
             {
               "$type": "Document",
@@ -113,23 +110,22 @@
               "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\CoherenceController.cs",
               "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\CoherenceController.cs",
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\CoherenceController.cs",
-              "ViewState": "AgIAAOwDAAAAAAAAAAArwPMDAAATAAAAAAAAAA==",
+              "ViewState": "AgIAADsCAAAAAAAAAAAIwEUCAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-18T11:18:08.561Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "CriticalThinkingController.cs",
               "DocumentMoniker": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\CriticalThinkingController.cs",
               "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\CriticalThinkingController.cs",
               "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\CriticalThinkingController.cs",
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\CriticalThinkingController.cs",
-              "ViewState": "AgIAALQCAAAAAAAAAADgv7YCAAAJAAAAAAAAAA==",
+              "ViewState": "AgIAAEUBAAAAAAAAAAAowAABAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-18T21:55:11.03Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-18T21:55:11.03Z"
             },
             {
               "$type": "Document",
@@ -141,8 +137,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Helpers\\IpHelper.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-17T10:18:34.693Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-17T10:18:34.693Z"
             },
             {
               "$type": "Document",
@@ -154,8 +149,7 @@
               "RelativeToolTip": "DeJargonizer2025\\.env.example",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-10-16T14:16:05.995Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-16T14:16:05.995Z"
             },
             {
               "$type": "Document",
@@ -167,8 +161,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Helpers\\SupabaseClient.cs",
               "ViewState": "AgIAAA0AAAAAAAAAAAAQwA0AAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-12T08:19:58.561Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-12T08:19:58.561Z"
             },
             {
               "$type": "Document",
@@ -180,8 +173,7 @@
               "RelativeToolTip": "DeJargonizer2025\\DeJargonizer2025.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-10-16T08:23:09.451Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-16T08:23:09.451Z"
             },
             {
               "$type": "Document",
@@ -193,8 +185,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Helpers\\GPTApiClient.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-11T13:43:48.649Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-11T13:43:48.649Z"
             },
             {
               "$type": "Document",
@@ -206,8 +197,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\TextGradingController.cs",
               "ViewState": "AgIAAEQAAAAAAAAAAAAcwKQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-12T08:12:53.72Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-12T08:12:53.72Z"
             },
             {
               "$type": "Document",
@@ -219,8 +209,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\PersuasiveController.cs",
               "ViewState": "AgIAAMcBAAAAAAAAAAAUwM8BAABCAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-12T08:12:47.892Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-12T08:12:47.892Z"
             }
           ]
         }

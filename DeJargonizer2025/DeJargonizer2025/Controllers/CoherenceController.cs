@@ -281,11 +281,11 @@ public class CoherenceController : ControllerBase
             },
             new BotMessage
             {
-                Text = "If any question feels unclear, you can ask me for clarification or examples. "
+                Text = "You will receive 5 questions. After each question you will receive feedback and some suggestions from the chatbot. Subsequently, you will be asked to revise your text according to the suggestions and your own thoughts and ideas."
             },
             new BotMessage
             {
-                Text = "Please choose to write or paste: (1) an abstract or summary of your current work/article in 150-500-words or (2) a longer text from part of the article that includes 2-3 consecutive paragraphs from your paper."
+                Text = "Please choose to write or paste: (1) a two-paragraph (or more) summary of your current work or article in 150–500 words. or (2) a longer text from part of the article that includes 2-3 consecutive paragraphs from your paper."
             }
         };
 
@@ -325,7 +325,7 @@ public class CoherenceController : ControllerBase
                     return greetingsInstructions;
                 }
 
-                if (string.IsNullOrWhiteSpace(lastStudentMessage))
+                if (string.IsNullOrWhiteSpace(lastStudentMessage) || ValidateWordCount(lastStudentMessage, 2, 20) != null)
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please provide the name you would like us to record." } };
                 }
@@ -430,7 +430,7 @@ public class CoherenceController : ControllerBase
                 history.CurrentStage = 5;
 
                 var revisionIntro1 = includeFeedback
-                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from ChatGPT if they are relevant."
+                    ? "These are some suggestions to improve your text. Please write a revised version, incorporating your own ideas and suggestions given here from AI Chatbot if they are relevant."
                     : "Please write a revised version, incorporating your own ideas and what you observed while completing the table.";
 
                 var responses1 = new List<BotMessage>
@@ -542,7 +542,7 @@ public class CoherenceController : ControllerBase
                 history.CurrentStage = 8;
 
                 var revisionIntro2 = includeFeedback
-                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
+                    ? "These are some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
                     : "Please write a revised version, incorporating your own ideas and what you noticed while analyzing your adverb use.";
 
                 var responses2 = new List<BotMessage>
@@ -585,7 +585,7 @@ public class CoherenceController : ControllerBase
                 {
                     new BotMessage
                     {
-                        Text = "Did you use pronouns (words that replace nouns such as, he, it, their, our, this, that) to refer back to previously mentioned ideas  without repeating the exact words?"
+                        Text = "Question 3: Did you use pronouns (words that replace nouns such as, he, it, their, our, this, that) to refer back to previously mentioned ideas  without repeating the exact words?"
                     },
                     BuildClosedOptionsMessage()
                 };
@@ -654,7 +654,7 @@ public class CoherenceController : ControllerBase
                 history.CurrentStage = 11;
 
                 var revisionIntro3 = includeFeedback
-                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
+                    ? "These are some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
                     : "Please write a revised version, incorporating your own ideas and what you noticed while reviewing your pronoun usage.";
 
                 var responses3 = new List<BotMessage>
@@ -767,7 +767,7 @@ public class CoherenceController : ControllerBase
                 history.CurrentStage = 14;
 
                 var revisionIntro4 = includeFeedback
-                    ? "I have some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
+                    ? "These are some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
                     : "Please write a revised version, incorporating your own ideas and what you learned while mapping the verbs you use.";
 
                 var responses4 = new List<BotMessage>
@@ -877,46 +877,67 @@ public class CoherenceController : ControllerBase
                     history.Feedback5 = null;
                 }
 
-                history.FinalText = history.CurrentText;
                 history.CurrentStage = 17;
 
-                var reflectionIntroMessages = new List<BotMessage>();
+                var revisionIntro5 = includeFeedback
+                    ? "These are some suggestions to improve your text. Please write a revised version, incorporating your own ideas and the suggestions provided here if they are relevant."
+                    : "Please write a revised version, incorporating your own ideas and what you noticed about your connectors.";
+
+                var responses5 = new List<BotMessage>
+                {
+                    new BotMessage
+                    {
+                        Text = revisionIntro5
+                    }
+                };
 
                 if (includeFeedback && !string.IsNullOrWhiteSpace(history.Feedback5))
                 {
-                    reflectionIntroMessages.Add(new BotMessage { Text = history.Feedback5 });
+                    responses5.Add(new BotMessage { Text = history.Feedback5 });
                 }
 
-                reflectionIntroMessages.Add(new BotMessage { Text = "Thank you! We hope you learned about improving coherence in your academic texts!" });
-                reflectionIntroMessages.Add(new BotMessage { Text = "The final step is to answer three short, close-ended reflection questions about the chatbot use and one optional open question. For each statement, please select an option from a 5-point Likert scale where 1 = strongly disagree and 5 = strongly agree." });
-                reflectionIntroMessages.Add(BuildLikertOptionsMessage("Reflection 1: The chatbot was friendly and easy to interact with."));
+                responses5.Add(new BotMessage
+                {
+                    Text = "Please provide your revised text (150-500 words)."
+                });
 
-                return reflectionIntroMessages;
+                return responses5;
 
             case 17:
+                if (string.IsNullOrWhiteSpace(lastStudentMessage))
+                {
+                    return new List<BotMessage> { new BotMessage { Text = "Please provide a 150-500 word revision." } };
+                }
+
+                var revision5Validation = ValidateWordCount(lastStudentMessage, 150, 500);
+                if (revision5Validation != null)
+                {
+                    return new List<BotMessage> { new BotMessage { Text = revision5Validation } };
+                }
+
+                history.RevisionAfterQuestion5 = lastStudentMessage;
+                history.CurrentText = lastStudentMessage;
+                history.FinalText = lastStudentMessage;
+                history.CurrentStage = 18;
+
+                return new List<BotMessage>
+                {
+                    new BotMessage { Text = "Thank you! We hope you learned about improving coherence in your academic texts!" },
+                    new BotMessage { Text = "The final step is to answer three short, close-ended reflection questions about the chatbot use and one optional open question. For each statement, please select an option from a 5-point Likert scale where 1 = strongly disagree and 5 = strongly agree." },
+                    BuildLikertOptionsMessage("Reflection 1: The chatbot was friendly and easy to interact with.")
+                };
+
+            case 18:
                 if (!IsValidLikertChoice(lastStudentMessage))
                 {
                     return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 (strongly disagree) to 5 (strongly agree)." } };
                 }
 
                 history.ReflectionAnswer1 = NormalizeLikertChoice(lastStudentMessage);
-                history.CurrentStage = 18;
-                return new List<BotMessage>
-                {
-                    BuildLikertOptionsMessage("Reflection 2: I found the chatbot challenging in a way that stimulated my writing skills.")
-                };
-
-            case 18:
-                if (!IsValidLikertChoice(lastStudentMessage))
-                {
-                    return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
-                }
-
-                history.ReflectionAnswer2 = NormalizeLikertChoice(lastStudentMessage);
                 history.CurrentStage = 19;
                 return new List<BotMessage>
                 {
-                    BuildLikertOptionsMessage("Reflection 3: The chatbot was useful for improving the quality of my writing.")
+                    BuildLikertOptionsMessage("Reflection 2: I found the chatbot challenging in a way that stimulated my writing skills.")
                 };
 
             case 19:
@@ -925,16 +946,29 @@ public class CoherenceController : ControllerBase
                     return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
                 }
 
-                history.ReflectionAnswer3 = NormalizeLikertChoice(lastStudentMessage);
+                history.ReflectionAnswer2 = NormalizeLikertChoice(lastStudentMessage);
                 history.CurrentStage = 20;
+                return new List<BotMessage>
+                {
+                    BuildLikertOptionsMessage("Reflection 3: The chatbot was useful for improving the quality of my writing.")
+                };
+
+            case 20:
+                if (!IsValidLikertChoice(lastStudentMessage))
+                {
+                    return new List<BotMessage> { new BotMessage { Text = "Please reply with a single number from 1 to 5." } };
+                }
+
+                history.ReflectionAnswer3 = NormalizeLikertChoice(lastStudentMessage);
+                history.CurrentStage = 21;
                 return new List<BotMessage>
                 {
                     new BotMessage { Text = "How did you feel while using the chatbot during your writing task? How did it help you, if it did? What did you learn about coherence and improving your academic writing?" }
                 };
 
-            case 20:
+            case 21:
                 history.ReflectionOpenResponse = lastStudentMessage ?? string.Empty;
-                history.CurrentStage = 21;
+                history.CurrentStage = 22;
 
                 if (history.isResearch)
                 {

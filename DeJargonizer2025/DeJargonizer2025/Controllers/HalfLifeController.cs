@@ -28,6 +28,7 @@ public class HalfLifeController : ControllerBase
 
     readonly Dictionary<int, (int min, int max)> wordCountRanges = new Dictionary<int, (int min, int max)>
     {
+        { 300, (50, 300) },
         { 120, (100, 140) },
         { 60, (45, 75) },
         { 30, (20, 40) },
@@ -109,6 +110,10 @@ public class HalfLifeController : ControllerBase
         public double Text120LastRareWordsPercentage { get; set; }
         [Column("text120_last_jargon_score")]
         public double Text120LastJargonScore { get; set; }
+
+        [Column("chatbot_reflection")]
+        public string? ChatbotReflection { get; set; }
+
     }
 
     public class HalfLifeConversationHistory
@@ -158,6 +163,7 @@ public class HalfLifeController : ControllerBase
         public string TargetAudience { get; set; }
         public DateTime StartTime { get; set; }
         public bool CopyPasteCheck { get; set; }
+        public string? ChatbotReflection { get; set; }
     }
 
     public class HalfLifeMessage
@@ -252,7 +258,7 @@ public class HalfLifeController : ControllerBase
                     return new List<string>
                 {
                     "Welcome to the Half-Life writing exercise! We're glad you're here.",
-                    "Before we begin, please share your full name so we can save your progress for the research study."
+                    "Before we begin, please share your full name so we can save your progress."
                 };
                 }
                 else
@@ -337,25 +343,48 @@ public class HalfLifeController : ControllerBase
                         case "4": history.WhichIsBetter = "Both"; break;
                     }
 
-                    history.CurrentStage++;
+                    history.CurrentStage = 8;
+
+                    return new List<string>
+                    {
+                        "Can you write 4-6 sentences about the use of the chatbot to help you summarise your presentation. " +
+                        "Was it helpful in improving your text, and if yes, how? " +
+                        "Was it helpful in planning your presentation, and if yes, how? " +
+                        "If not, please explain why.<br />" +
+                        "Use 50-300 words."
+                    };
+                }
+
+                return new List<string>
+                {
+                    "Please enter your answer as single digit: " +
+                    "<div class='chat-option'>(1) My original text</div>" +
+                    "<div class='chat-option'>(2) My revised text</div>" +
+                    "<div class='chat-option'>(3) Neither</div>" +
+                    "<div class='chat-option'>(4) Both!</div>"
+                };
+
+            case 8:
+                {
+                    var reflection = lastUserMessage ?? string.Empty;
+
+                    var validation = ValidateWordCount(reflection, 300);
+                    if (!string.IsNullOrEmpty(validation))
+                        return new List<string> { validation };
+
+                    history.ChatbotReflection = reflection.Trim();
+
+                    history.CurrentStage = 9;
 
                     history.TaskId = await SaveResultsAsync(history, userId, includeFeedback, isResearch);
                     _usageCounter.UpdateNumberOfUses(1);
 
                     return new List<string>
-                {
-                    "We’re done! Hope this was helpful. Now is a good time to further hone your skills at the science communication free online course at edX."
-                };
+                    {
+                        "We’re done! Hope this was helpful. Now is a good time to further hone your skills at the science communication free online course at edX."
+                    };
                 }
 
-                return new List<string>
-            {
-                "Please enter your answer as single digit: " +
-                "<div class='chat-option'>(1) My original text</div>" +
-                "<div class='chat-option'>(2) My revised text</div>" +
-                "<div class='chat-option'>(3) Neither</div>" +
-                "<div class='chat-option'>(4) Both!</div>"
-            };
 
             default:
                 history.CurrentStage = 0;
@@ -431,7 +460,9 @@ public class HalfLifeController : ControllerBase
             Text120LastTotalWords = history.Text120LastTotalWords,
             Text120LastRareWords = history.Text120LastRareWords,
             Text120LastRareWordsPercentage = history.Text120LastRareWordsPercentage,
-            Text120LastJargonScore = history.Text120LastJargonScore
+            Text120LastJargonScore = history.Text120LastJargonScore,
+
+            ChatbotReflection = isSaveUserData ? history.ChatbotReflection : null,
         };
 
         try
@@ -498,6 +529,7 @@ public class HalfLifeController : ControllerBase
                 history.Text30GPT3 ?? string.Empty,
                 history.Text120Last ?? string.Empty,
                 history.WhichIsBetter ?? string.Empty,
+                history.ChatbotReflection ?? string.Empty,
             };
             }
             else
@@ -517,6 +549,7 @@ public class HalfLifeController : ControllerBase
                 history.Text30 ?? string.Empty,
                 history.Text120Last ?? string.Empty,
                 history.WhichIsBetter ?? string.Empty,
+                history.ChatbotReflection ?? string.Empty,
             };
             }
 

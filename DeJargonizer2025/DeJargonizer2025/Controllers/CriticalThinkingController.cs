@@ -265,7 +265,7 @@ public class CriticalThinkingController : ControllerBase
 
                 if (string.IsNullOrWhiteSpace(lastStudentMessage) || ValidateWordCount(lastStudentMessage, 2, 20) != null)
                 {
-                    return new List<string> { "Please provide the name you would like us to record." };
+                    return new List<string> { "Please provide the name you would like us to record (min 2 words)." };
                 }
 
                 history.ParticipantName = lastStudentMessage.Trim();

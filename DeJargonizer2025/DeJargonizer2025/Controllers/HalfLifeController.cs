@@ -610,7 +610,7 @@ public class HalfLifeController : ControllerBase
             return ProcessStageWithoutFeedback(history, wordLimit, text, lastRound);
         }
 
-        TextGrading.Lang = Language.English2021_2024;
+        TextGrading.Lang = Language.English2022_2025;
         var articleGradingInfo = TextGrading.AnalyzeSingleText(text.Trim(), _env);
 
         var scoreFeedback = $"Your suitability for a general audience score was {articleGradingInfo.Score}. <br />{(articleGradingInfo.Score > 90 ? "Nicely done!" : "Try to get it higher in the next round.")}";

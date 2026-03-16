@@ -96,6 +96,9 @@
     <Content Include="GeneralData_2024.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="GeneralData_2025.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
     <Content Include="Words-Worldwide-Word-list-UK-US-2009.docx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

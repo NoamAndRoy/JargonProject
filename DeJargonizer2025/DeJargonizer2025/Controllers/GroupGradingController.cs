@@ -27,7 +27,7 @@ namespace JargonProject.Controllers
         {
             try
             {
-                TextGrading.Lang = Language.English2021_2024;
+                TextGrading.Lang = Language.English2022_2025;
                 List<ArticleGradingInfo> articlesGradingInfo = getArticlesGradingInfoList(ArticlesGroupFU);
 
                 GroupGradingInfo groupInfo;

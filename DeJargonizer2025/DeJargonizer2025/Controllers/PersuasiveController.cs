@@ -218,7 +218,7 @@ public class PersuasiveController : ControllerBase
                 };
 
 
-                TextGrading.Lang = Language.English2021_2024;
+                TextGrading.Lang = Language.English2022_2025;
                 var articleGradingInfo = TextGrading.AnalyzeSingleText(lastUserText.Text.Trim(), _env);
 
                 if (articleGradingInfo.RareWordsSyns.Count > 0)

@@ -22,7 +22,8 @@ namespace AddUKUSWords
             //GenerateDataDict(2018, 2021);
             //GenerateDataDict(2019, 2022);
             //GenerateDataDict(2020, 2023);
-            GenerateDataDict(2021, 2024);
+            //GenerateDataDict(2021, 2024);
+            GenerateDataDict(2022, 2025);
             //CompareDicts();
         }
 

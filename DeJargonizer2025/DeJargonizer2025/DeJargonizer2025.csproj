@@ -147,6 +147,9 @@
     <None Update="InstanceMatrices\2024DataUKUS2021-2024.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="InstanceMatrices\2026DataUKUS2022-2025.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="InstanceMatrices\compare_dicts.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

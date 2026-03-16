@@ -71,8 +71,7 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2025-03-31T10:10:42.945Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -85,8 +84,7 @@
               "ViewState": "AgIAAFMAAAAAAAAAAAAswGwAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-10T05:11:33.277Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Bookmark",
@@ -100,7 +98,7 @@
               "RelativeDocumentMoniker": "DeJargonizer2025\\Controllers\\HalfLifeController.cs",
               "ToolTip": "D:\\royosef\\projects\\JargonProject\\DeJargonizer2025\\DeJargonizer2025\\Controllers\\HalfLifeController.cs",
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\HalfLifeController.cs",
-              "ViewState": "AgIAAFkBAAAAAAAAAAApwHkBAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAHABAAAAAAAAAAAqwHkBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-18T20:45:21.991Z",
               "EditorCaption": ""
@@ -115,8 +113,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\CoherenceController.cs",
               "ViewState": "AgIAADYFAAAAAAAAAAAAAEEFAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-18T11:18:08.561Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-18T11:18:08.561Z"
             },
             {
               "$type": "Document",
@@ -128,8 +125,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\CriticalThinkingController.cs",
               "ViewState": "AgIAAAoBAAAAAAAAAAAAwAsBAABvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-18T21:55:11.03Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-18T21:55:11.03Z"
             },
             {
               "$type": "Document",
@@ -141,8 +137,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Helpers\\IpHelper.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-17T10:18:34.693Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-17T10:18:34.693Z"
             },
             {
               "$type": "Document",
@@ -154,8 +149,7 @@
               "RelativeToolTip": "DeJargonizer2025\\.env.example",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-10-16T14:16:05.995Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-16T14:16:05.995Z"
             },
             {
               "$type": "Document",
@@ -167,8 +161,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Helpers\\SupabaseClient.cs",
               "ViewState": "AgIAAA0AAAAAAAAAAAAQwA0AAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-12T08:19:58.561Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-12T08:19:58.561Z"
             },
             {
               "$type": "Document",
@@ -180,8 +173,7 @@
               "RelativeToolTip": "DeJargonizer2025\\DeJargonizer2025.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-10-16T08:23:09.451Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-16T08:23:09.451Z"
             },
             {
               "$type": "Document",
@@ -193,8 +185,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Helpers\\GPTApiClient.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-11T13:43:48.649Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-11T13:43:48.649Z"
             },
             {
               "$type": "Document",
@@ -206,8 +197,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\TextGradingController.cs",
               "ViewState": "AgIAAEQAAAAAAAAAAAAcwKQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-12T08:12:53.72Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-12T08:12:53.72Z"
             },
             {
               "$type": "Document",
@@ -219,8 +209,7 @@
               "RelativeToolTip": "DeJargonizer2025\\Controllers\\PersuasiveController.cs",
               "ViewState": "AgIAAMcBAAAAAAAAAAAUwM8BAABCAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-12T08:12:47.892Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-12T08:12:47.892Z"
             }
           ]
         }
